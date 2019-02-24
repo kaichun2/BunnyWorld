@@ -1,4 +1,4 @@
-package edu.stanford.cs193a.bunnyworld;
+package edu.stanford.cs108.bunnyworld;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("edu.stanford.cs193a.bunnyworld", appContext.getPackageName());
+        assertEquals("edu.stanford.cs108.bunnyworld", appContext.getPackageName());
     }
 }

@@ -1,4 +1,4 @@
-package edu.stanford.cs193a.bunnyworld;
+package edu.stanford.cs108.bunnyworld;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
