@@ -18,7 +18,7 @@ Chun, Emma, Luis, Rena, Tassica
 
 `git pull`
 
-### Then, move to your own branch (so you don't accidentally mess with the main code by accident):
+### Then, move to your own branch (so you don't accidentally mess with the main code):
 
 `git checkout <branch_name>`  (exclude <>, add **-b if you are creating a new branch**, will otherwise move you to that branch)
 
