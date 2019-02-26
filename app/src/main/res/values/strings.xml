@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">BunnyWorld</string>
+    <string name="on_click">on click</string>
+    <string-array name="script_actions">
+        <item>on click</item>
+        <item>GoTo</item>
+        <item>PlaySound</item>
+        <item>Hide</item>
+        <item>Show</item>
+    </string-array>
 </resources>
