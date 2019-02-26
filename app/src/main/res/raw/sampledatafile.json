@@ -1,0 +1,46 @@
+{
+  "game_name": "TheBestGame",
+  "num_pages": 2,
+  "pages" : [
+    {
+      "page_id" : 1,
+      "page_name" : "da first page",
+      "num_shapes": 1,
+      "shapes" : [
+        {
+          "name" : "evil bunny",
+          "imgName" : "death.png",
+          "page" : 1,
+          "isVisible" : true,
+          "isMovable" : true
+
+        }
+      ]
+    },
+    {
+      "page_id" : 2,
+      "page_name" : "temple of d00m",
+      "num_shapes": 1,
+      "shapes" : [
+        {
+          "name" : "carrot",
+          "imgName" : "carrot2.png",
+          "page" : 2,
+          "isVisible" : true,
+          "isMovable" : true
+
+        }
+      ]
+    }
+  ],
+  "num_possessions" : 1,
+  "possessions" : [
+    {
+      "name" : "carrot",
+      "imgName" : "carrot.png",
+      "page" : 1,
+      "isVisible" : true,
+      "isMovable" : true
+    }
+  ]
+}
