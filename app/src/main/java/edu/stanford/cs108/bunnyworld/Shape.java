@@ -14,6 +14,9 @@ public class Shape {
     private boolean isVisible;
     private boolean isMovable;
 
+    // also need something for script text!! TODO
+
+
 
     public Shape(String name, String imgName, int xLoc, int yLoc, int pageID, ShapeText text,
                  boolean isVisible, boolean isMovable) {
