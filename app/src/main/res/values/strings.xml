@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">BunnyWorld</string>
-    <string name="on_click">on click</string>
     <string name="click_obj">Click on Object</string>
     <string name="show_script">Show Script</string>
     <string name="copy_shape">Copy Shape</string>
@@ -8,4 +7,12 @@
     <string name="paste_shape">Paste Shape</string>
     <string name="change_background">Change Background</string>
     <string name="import_resource">Import Resource</string>
+    <string name="x_val">X:</string>
+    <string name="y_val">Y:</string>
+    <string name="height">Height:</string>
+    <string name="width">Width:</string>
+    <string name="movable">Movable</string>
+    <string name="hidden">Hidden</string>
+    <string name="on">Y</string>
+    <string name="off">N</string>
 </resources>
