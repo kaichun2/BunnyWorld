@@ -79,6 +79,9 @@ public class Page {
                 new Page(page_name, page_id, shapes);
             }
 
+            /* Finally, initialize the drawables in the shapes array. */
+            Shape.initDrawables(context); // need context in order to read res/raw
+
         } catch(Exception ex) {
             System.out.println("Error parsing database file for " + nameOfGame + ".");
             Log.d("dog", "file reading failed");
@@ -103,6 +106,7 @@ public class Page {
         return ret.toString();
     }
 
+    /* Parse the shapes in the given shapes array. */
     private static ArrayList<Shape> parseShapes(JSONArray shapes) {
         ArrayList<Shape> pageShapes = new ArrayList<>();
         Iterator<JSONObject> it = shapes.iterator();
@@ -160,12 +164,17 @@ public class Page {
         return pageContents.toString();
     }
 
-    public static void test(Context context) {
+    public static void test(Context context, Canvas canvas) {
         Page.loadDatabase(context,"sampledatafile");
         ArrayList<Page> pages = Page.getPages();
         for (Page page : pages) {
             Log.d("dog", page.toString());
         }
+        Shape evilbunny = pages.get(0).getShapes().get(0);
+        Shape winText = pages.get(2).getShapes().get(0);
+
+        evilbunny.draw(canvas);
+        winText.draw(canvas);
     }
 
     /* Returns list of all pages. loadDatabase() first. */
