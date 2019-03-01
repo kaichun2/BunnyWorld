@@ -7,11 +7,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
+import android.util.Log;
 
 
 /**
@@ -30,6 +32,9 @@ public class Shape {
     private boolean isVisible;  /* Is this Shape visible? */
     private boolean isMovable;  /* Is this Shape movable? */
 
+    /* Grey paint object (for when there's no image). */
+    private Paint grayPaint = new Paint();
+
     /* The following are more for internal use, but the client must supply a script string. */
     private HashMap<String, String> commands;
     private static final String[] validActionsArr = new String[] {"goto", "play", "hide", "show"};
@@ -38,15 +43,10 @@ public class Shape {
     /* User can access all the shapes across all the pages using Shape.getAllShapes(). */
     private static final ArrayList<Shape> allShapes = new ArrayList<>();
 
-
-    // TODO: how to efficiently load in bitmap drawables? need context but none here.
-//    /* Load in BitmapDrawables. */
-//    private BitmapDrawable carrotDrawable, carrot2Drawable, deathDrawable;
-//    private BitmapDrawable duckDrawable, fireDrawable, mysticDrawable;
-//
-//    private void init() {
-//        getResources().getDrawable();
-//    }
+    /* Load in BitmapDrawables. */
+    private static HashMap<String, BitmapDrawable> drawables = new HashMap<>();
+    private static BitmapDrawable carrotDrawable, carrot2Drawable, deathDrawable;
+    private static BitmapDrawable duckDrawable, fireDrawable, mysticDrawable;
 
 
     public Shape(String name, float x, float y, float width, float height, String script,
@@ -64,12 +64,32 @@ public class Shape {
         this.isMovable = isMovable;
         if (!script.isEmpty()) commands = parseScript(script);
         allShapes.add(this);
+        grayPaint.setColor(Color.GRAY);
     }
 
     public Shape() {
         /* Default values, all attributes should be set using setters. */
         this("", -1.0f, -1.0f, -1.0f, -1.0f, "", "",
                 -1,null, false, false);
+    }
+
+    // init drawables and map the imgNames to the respective drawables
+    public static void initDrawables(Context context) {
+        // load in drawables
+        carrotDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.carrot);
+        carrot2Drawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.carrot2);
+        deathDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.death);
+        duckDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.duck);
+        fireDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.fire);
+        mysticDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.mystic);
+
+        // initialize drawables hashmap so we can access them by imgName
+        drawables.put("carrot", carrotDrawable);
+        drawables.put("carrot2", carrot2Drawable);
+        drawables.put("death", deathDrawable);
+        drawables.put("duck", duckDrawable);
+        drawables.put("fire", fireDrawable);
+        drawables.put("mystic", mysticDrawable);
     }
 
     /*
@@ -88,14 +108,18 @@ public class Shape {
         // choose bitmap image based on imgName
         if (imgName.isEmpty()) {
             // draw a grey rectangle
+            canvas.drawRect(x, y, x + width, y + height, grayPaint);
 
         } else {
             // draw  the bitmap image
-//        canvas.drawBitmap(bitmap, left, top, paint);
+            Bitmap image = drawables.get(imgName).getBitmap();
 
+            // scale image by width and height
+            Bitmap scaled = Bitmap.createScaledBitmap(image, (int) height, (int) width, true);
+
+            // draw scaled image
+            canvas.drawBitmap(scaled, x, y, null); // may need paint later for extensions
         }
-
-
     }
 
     // This will map commands. (already tested)

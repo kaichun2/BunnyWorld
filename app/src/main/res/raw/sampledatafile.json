@@ -9,7 +9,7 @@
       "shapes" : [
         {
           "name" : "evil-bunny",
-          "imgName" : "death.png",
+          "imgName" : "death",
           "pageID" : 1,
           "isVisible" : true,
           "isMovable" : false,
@@ -29,7 +29,7 @@
       "shapes" : [
         {
           "name" : "carrot2",
-          "imgName" : "carrot2.png",
+          "imgName" : "carrot2",
           "pageID" : 2,
           "isVisible" : true,
           "isMovable" : true,
@@ -42,7 +42,7 @@
         },
         {
           "name" : "hint",
-          "imgName" : "carrot2.png",
+          "imgName" : "carrot2",
           "pageID" : 2,
           "isVisible" : true,
           "isMovable" : false,
@@ -92,7 +92,7 @@
   "possessions" : [
     {
       "name" : "carrot",
-      "imgName" : "carrot.png",
+      "imgName" : "carrot",
       "pageID" : 1,
       "isVisible" : true,
       "isMovable" : true,
