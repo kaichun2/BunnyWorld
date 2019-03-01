@@ -58,6 +58,7 @@
                     >
 
                     <LinearLayout
+                        android:id="@+id/editable_obj_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -81,11 +82,13 @@
                             android:src="@drawable/ic_done_black_24dp"
                             android:background="?android:attr/selectableItemBackground"
                             android:layout_marginRight="10dp"
+                            android:onClick="changeObjName"
                             />
 
                     </LinearLayout>
 
                     <RelativeLayout
+                        android:id="@+id/obj_name_header"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -112,6 +115,7 @@
                             android:background="?android:attr/selectableItemBackground"
                             android:layout_marginLeft="5dp"
                             android:layout_toLeftOf="@id/save_obj"
+                            android:onClick="editObjectName"
                             />
 
                         <ImageButton
@@ -122,6 +126,7 @@
                             android:background="?android:attr/selectableItemBackground"
                             android:layout_marginLeft="5dp"
                             android:layout_toLeftOf="@id/delete_obj"
+                            android:onClick="saveObject"
                             />
 
                         <ImageButton
@@ -133,6 +138,7 @@
                             android:layout_marginLeft="5dp"
                             android:layout_marginRight="10dp"
                             android:layout_alignParentRight="true"
+                            android:onClick="deleteObject"
                             />
 
                     </RelativeLayout>
@@ -144,6 +150,7 @@
                         android:text="@string/show_script"
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
+                        android:onClick="showScript"
                         />
 
 
