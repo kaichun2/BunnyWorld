@@ -105,14 +105,59 @@ public class Page {
 
     private static ArrayList<Shape> parseShapes(JSONArray shapes) {
         ArrayList<Shape> pageShapes = new ArrayList<>();
-        /* TODO: design shape class and parse shapes!! */
+        Iterator<JSONObject> it = shapes.iterator();
+        while (it.hasNext()) {
+            // choose shape
+            JSONObject shapeObj = it.next();
+
+            // collect shape attributes
+            String name = (String) shapeObj.get("name");
+            String imgName = (String) shapeObj.get("imgName");
+            int pageID = (int) (long) shapeObj.get("pageID");
+            boolean isVisible = (boolean) shapeObj.get("isVisible");
+            boolean isMovable = (boolean) shapeObj.get("isMovable");
+            float x = (float) (long) shapeObj.get("x");
+            float y = (float) (long) shapeObj.get("y");
+            float width = (float) (long) shapeObj.get("width");
+            float height = (float) (long) shapeObj.get("height");
+            String script = (String) shapeObj.get("script");
+
+            // create shape
+            Shape shape = new Shape(); // note: has shapeText as null by default
+            shape.setName(name);
+            shape.setImgName(imgName);
+            shape.setPageID(pageID);
+            shape.setVisible(isVisible);
+            shape.setMovable(isMovable);
+            shape.setX(x);
+            shape.setY(y);
+            shape.setWidth(width);
+            shape.setHeight(height);
+            shape.setScript(script);
+
+            // do textObj portion separately
+            JSONObject textObj = (JSONObject) shapeObj.get("textObj");
+            if (textObj != null) {
+                float xLoc = (float) (long) textObj.get("xLoc");
+                float yLoc = (float) (long) textObj.get("yLoc");
+                int fontSize = (int) (long) textObj.get("fontSize");
+                String text = (String) textObj.get("text");
+                shape.setShapeText(xLoc, yLoc, fontSize, text);
+            }
+            pageShapes.add(shape);
+        }
 
         return pageShapes;
     }
 
     @Override
     public String toString() {
-        return "Page " + getPageID() + ": " + getPageName();
+        StringBuilder pageContents = new StringBuilder();
+        pageContents.append("Page " + getPageID() + ": " + getPageName() + "\n");
+        for (Shape shape : shapes) {
+            pageContents.append(shape.toString() + "\n");
+        }
+        return pageContents.toString();
     }
 
     public static void test(Context context) {
@@ -208,12 +253,7 @@ public class Page {
     }
 
     /* Gets the shape at (clickX, clickY). If lim=1, topmost. If lim=2, one below topmost, etc. */
-    private Shape getShape(int clickX, int clickY, int lim) { // TODO: (likely reuse code from prev assignment)
-        // iterate through the shapes list
-        // get the x and y of each shape
-        // check if those are within the x and y coord of what's been clicked
-        // if so, return that shape, else null
-
+    private Shape getShape(int clickX, int clickY, int lim) {
         Shape ret = null;
         int seen = 0;
         for (int i = shapes.size() -1; i >= 0; i--) {
@@ -225,7 +265,7 @@ public class Page {
                 if (seen == lim) break;
             }
         }
-
+        if (seen != lim) return null; // exited for loop without finding expected shape (lim)
         return ret;
 
     }

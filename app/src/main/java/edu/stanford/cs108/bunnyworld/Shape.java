@@ -269,7 +269,18 @@ public class Shape {
 
     public void setPageID(int id) { pageID = id; }
 
+    // mostly for setting to null
     public void setShapeText(ShapeText shapetext) { textObj = shapetext; }
+
+    // alternate set shape text (use this one when doing extensions, more robust)
+    public void setShapeText(float x, float y, int fontSize, String text) {
+        textObj = new ShapeText(x, y, fontSize, text);
+    }
+
+    // use this for the basic functionality, will default x, yto shape ivar's values and fontSize=12
+    public void setShapeText(String text) {
+        textObj = new ShapeText(text);
+    }
 
     public void setMovable(boolean val) { isMovable = val; }
 
@@ -283,6 +294,32 @@ public class Shape {
     public void setY(float y) {
         if (!isMovable) return;
         this.y = y;
+    }
+
+    public void setWidth(float width) { this.width = width; }
+
+    public void setHeight(float height) { this.height = height; }
+
+    @Override
+    public String toString() {
+        StringBuilder shapeContents = new StringBuilder();
+        shapeContents.append("Shape name: " + name + "\n");
+        shapeContents.append("imgName: " + imgName + "\n");
+        shapeContents.append("pageID: " + pageID + "\n");
+        shapeContents.append("isVisible: " + isVisible + "\n");
+        shapeContents.append("isMovable: " + isMovable + "\n");
+        shapeContents.append("x: " + x + "\n");
+        shapeContents.append("y: " + y + "\n");
+        shapeContents.append("width: " + width + "\n");
+        shapeContents.append("height: " + height + "\n");
+        shapeContents.append("script commands: " + commands.toString() + "\n");
+        if (textObj != null) {
+            shapeContents.append("textObj: " + textObj.toString() + "\n");
+        } else {
+            shapeContents.append("textObj is null. \n");
+        }
+
+        return shapeContents.toString();
     }
 
     /* ShapeText Inner class.
@@ -319,6 +356,14 @@ public class Shape {
             paint.setTextSize(fontSize);
             paint.setColor(Color.BLACK);
             canvas.drawText(text, x, y, paint);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder textContents = new StringBuilder();
+            textContents.append("(xLoc: " + xLoc + ", yLoc: " + yLoc + ") with ");
+            textContents.append(fontSize + " font and text: " + text + "\n");
+            return textContents.toString();
         }
 
         /* Getters and setters. */
