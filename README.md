@@ -28,7 +28,7 @@ Chun, Emma, Luis, Rena, Tassica
 
 `git commit -m "message about what your commit changes do" `
 
-`git push` (all the changes you've made have been to your local branch, this will update the data on your remote branch, which will be matched up with your local branch)
+`git push` (all the changes you've made have been to your local branch, this will update the data on your remote branch, which will be matched up with your local branch. you will probably have to do something with upstream if you just made this branch locally, but the command you need is given to you when you attempt to push)
 
 --
 # Merging your code with main code
