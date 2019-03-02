@@ -423,7 +423,7 @@ public class GameEditor extends AppCompatActivity {
 
         delete.show();
     }
-
+    
     public void saveObject(View view) {
 
         // TO DO: pass in object name
