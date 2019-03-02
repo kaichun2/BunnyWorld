@@ -4,16 +4,24 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.util.Log;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  *
@@ -40,6 +48,12 @@ public class Page {
     /* In sequential order of Page IDs due to how database is structured. */
     private static final ArrayList<Page> allPages = new ArrayList<>();
 
+    /* Possessions will be loaded into a static array of shapes after loadDatabase(). */
+    private static ArrayList<Shape> possessions = new ArrayList<>();
+
+    /* Feel free to use this when testing your code. */
+    public static final String SAMPLE_DATA_FILE = "sampledatafile";
+
     public Page(String pageName, int pageID, ArrayList<Shape> shapes) {
         this.pageName = pageName;
         this.pageID = pageID;
@@ -61,99 +75,6 @@ public class Page {
         page.drawAllShapes(canvas);
     } // note: up to client implementing draw area view to call invalidate
 
-    @SuppressWarnings("unchecked")
-    public static void loadDatabase(Context context, String nameOfGame) {
-        Log.d("dog", "launching parse for pages");
-        JSONParser parser = new JSONParser();
-        try {
-            String json = getJSONDataFromFile(context, nameOfGame);
-            JSONObject data = (JSONObject) parser.parse(json);
-            JSONArray pages = (JSONArray) data.get("pages");
-            Iterator<JSONObject> it = pages.iterator();
-            while (it.hasNext()) {
-                JSONObject page = it.next();
-                String page_name = (String) page.get("page_name");
-                int page_id = (int) (long) page.get("page_id"); // this won't overflow.
-                ArrayList<Shape> shapes = parseShapes((JSONArray) page.get("shapes"));
-                // create new page, added automatically to static arr of pages
-                new Page(page_name, page_id, shapes);
-            }
-
-            /* Finally, initialize the drawables in the shapes array. */
-            Shape.initDrawables(context); // need context in order to read res/raw
-
-        } catch(Exception ex) {
-            System.out.println("Error parsing database file for " + nameOfGame + ".");
-            Log.d("dog", "file reading failed");
-            ex.printStackTrace();
-        }
-    }
-
-    private static String getJSONDataFromFile(Context context, String filename) {
-        StringBuilder ret = new StringBuilder();
-        try {
-            InputStream in = context.getResources().openRawResource(
-                    context.getResources().getIdentifier(filename,
-                            "raw", context.getPackageName()));
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                ret.append(line);
-            }
-        } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + filename + " in getJSONDataFromFile.");
-        }
-        return ret.toString();
-    }
-
-    /* Parse the shapes in the given shapes array. */
-    private static ArrayList<Shape> parseShapes(JSONArray shapes) {
-        ArrayList<Shape> pageShapes = new ArrayList<>();
-        Iterator<JSONObject> it = shapes.iterator();
-        while (it.hasNext()) {
-            // choose shape
-            JSONObject shapeObj = it.next();
-
-            // collect shape attributes
-            String name = (String) shapeObj.get("name");
-            String imgName = (String) shapeObj.get("imgName");
-            int pageID = (int) (long) shapeObj.get("pageID");
-            boolean isVisible = (boolean) shapeObj.get("isVisible");
-            boolean isMovable = (boolean) shapeObj.get("isMovable");
-            float x = (float) (long) shapeObj.get("x");
-            float y = (float) (long) shapeObj.get("y");
-            float width = (float) (long) shapeObj.get("width");
-            float height = (float) (long) shapeObj.get("height");
-            String script = (String) shapeObj.get("script");
-
-            // create shape
-            Shape shape = new Shape(); // note: has shapeText as null by default
-            shape.setName(name);
-            shape.setImgName(imgName);
-            shape.setPageID(pageID);
-            shape.setVisible(isVisible);
-            shape.setMovable(isMovable);
-            shape.setX(x);
-            shape.setY(y);
-            shape.setWidth(width);
-            shape.setHeight(height);
-            shape.setScript(script);
-
-            // do textObj portion separately
-            JSONObject textObj = (JSONObject) shapeObj.get("textObj");
-            if (textObj != null) {
-                float xLoc = (float) (long) textObj.get("xLoc");
-                float yLoc = (float) (long) textObj.get("yLoc");
-                int fontSize = (int) (long) textObj.get("fontSize");
-                String text = (String) textObj.get("text");
-                shape.setShapeText(xLoc, yLoc, fontSize, text);
-            }
-            pageShapes.add(shape);
-        }
-
-        return pageShapes;
-    }
-
     @Override
     public String toString() {
         StringBuilder pageContents = new StringBuilder();
@@ -162,19 +83,6 @@ public class Page {
             pageContents.append(shape.toString() + "\n");
         }
         return pageContents.toString();
-    }
-
-    public static void test(Context context, Canvas canvas) {
-        Page.loadDatabase(context,"sampledatafile");
-        ArrayList<Page> pages = Page.getPages();
-        for (Page page : pages) {
-            Log.d("dog", page.toString());
-        }
-        Shape evilbunny = pages.get(0).getShapes().get(0);
-        Shape winText = pages.get(2).getShapes().get(0);
-
-        evilbunny.draw(canvas);
-        winText.draw(canvas);
     }
 
     /* Returns list of all pages. loadDatabase() first. */
@@ -189,6 +97,8 @@ public class Page {
     public int getPageID() {
         return pageID;
     }
+
+    public static void setPossessions(ArrayList<Shape> poss) { possessions = poss; }
 
     // Execute onEnter triggers for every shape on this page.
     // page.onEnter(this, canvas)
@@ -209,18 +119,6 @@ public class Page {
     public ArrayList<Shape> getShapes() {
         return shapes;
     }
-
-    /* TODO: don't think add/delete shape necessary if we can just make the shapes invisible/visible
-     * will prob start each page off with all the shapes it'll use already in shapes, and then
-     * update the canvas not by adding/removing shapes but by setting an invisible/visible property.*/
-//    public void addShape(Shape shape) {
-//        this.shapes.add(shape);
-//    }
-//
-//    public void deleteShape(Shape shape) {
-//        this.shapes.remove(shape);
-//    }
-
 
     /*
     TODO: what happens when user clicks on canvas (which represents page) during game?
@@ -277,5 +175,314 @@ public class Page {
         if (seen != lim) return null; // exited for loop without finding expected shape (lim)
         return ret;
 
+    }
+
+    /* All the database parsing and page/shape/possessions instantiation/initialization. */
+
+    @SuppressWarnings("unchecked")
+    public static void loadDatabase(Context context, String nameOfGame) {
+        Log.d("dog", "launching parse for pages");
+
+        /* For testing purposes (allows sample database file in internal storage): */
+        if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadSampleDatabaseIntoInternalStorage(context);
+
+        String json = getJSONDataFromFile(context, nameOfGame + ".json");
+        loadDatabaseFromJSONString(context, json);
+    }
+
+    public static void loadDatabaseFromJSONString(Context context, String json) {
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject data = (JSONObject) parser.parse(json);
+            JSONArray pages = (JSONArray) data.get("pages");
+            Iterator<JSONObject> it = pages.iterator();
+            while (it.hasNext()) {
+                JSONObject page = it.next();
+                String page_name = (String) page.get("page_name");
+                int page_id = Integer.parseInt((String) page.get("page_id")); // this won't overflow.
+                ArrayList<Shape> shapes = parseShapes((JSONArray) page.get("shapes"));
+                // create new page, added automatically to static arr of pages
+                new Page(page_name, page_id, shapes);
+            }
+
+            /* Load possessions inventory into array of shapes. */
+            JSONArray possArr = (JSONArray) data.get("possessions");
+            loadPossessionsArr(possArr);
+
+            /* Finally, initialize the drawables in the shapes array. */
+            Shape.initDrawables(context); // need context in order to read res/raw
+
+        } catch(Exception ex) {
+            System.out.println("Error parsing database file.");
+            Log.d("dog", "file reading failed");
+            ex.printStackTrace();
+        }
+    }
+
+    private static void loadPossessionsArr(JSONArray possArr) {
+        possessions = parseShapes(possArr);
+    }
+
+    // file is in internal storage
+    private static String getJSONDataFromFile(Context context, String filename) {
+        StringBuilder ret = new StringBuilder();
+        try {
+
+            if (!fileExists(context, filename)) { // create new file
+                new File(context.getFilesDir(), filename);
+            }
+
+            FileInputStream in = context.openFileInput(filename);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                ret.append(line);
+            }
+
+            in.close();
+
+        } catch (IOException ex) {
+            Log.d("dog", "Error getting json data from file " + filename + " in getJSONDataFromFile.");
+        }
+        return ret.toString();
+    }
+
+    private static boolean fileExists(Context context, String filename) {
+        String path = context.getFilesDir().getAbsolutePath() + "/" + filename;
+        File test = new File(path);
+        return test.exists();
+    }
+
+    /* Parse the shapes in the given array of shapes. */
+    private static ArrayList<Shape> parseShapes(JSONArray shapes) {
+        ArrayList<Shape> pageShapes = new ArrayList<>();
+        Iterator<JSONObject> it = shapes.iterator();
+        while (it.hasNext()) {
+            // choose shape
+            JSONObject shapeObj = it.next();
+
+            // collect shape attributes
+            String name = (String) shapeObj.get("name");
+            String imgName = (String) shapeObj.get("imgName");
+            int pageID = -1; // pageID is null if shape is in possessions!
+            if (shapeObj.get("pageID") != null) {
+                pageID = Integer.parseInt((String) shapeObj.get("pageID"));
+            }
+            boolean isVisible = (boolean) shapeObj.get("isVisible");
+            boolean isMovable = (boolean) shapeObj.get("isMovable");
+            float x = Float.parseFloat((String) shapeObj.get("x"));
+            float y = Float.parseFloat((String) shapeObj.get("y"));
+            float width = Float.parseFloat((String) shapeObj.get("width"));
+            float height = Float.parseFloat((String) shapeObj.get("height"));
+            String script = (String) shapeObj.get("script");
+
+            // create shape
+            Shape shape = new Shape(); // note: has shapeText as null by default
+            shape.setName(name);
+            shape.setImgName(imgName);
+            shape.setPageID(pageID);
+            shape.setVisible(isVisible);
+            shape.setMovable(isMovable);
+            shape.setX(x);
+            shape.setY(y);
+            shape.setWidth(width);
+            shape.setHeight(height);
+            shape.setScript(script);
+
+            // do textObj portion separately
+            JSONObject textObj = (JSONObject) shapeObj.get("textObj");
+            if (textObj != null) {
+                float xLoc = Float.parseFloat((String) textObj.get("xLoc"));
+                float yLoc = Float.parseFloat((String) textObj.get("yLoc"));
+                int fontSize = Integer.parseInt((String) textObj.get("fontSize"));
+                String text = (String) textObj.get("text");
+                shape.setShapeText(xLoc, yLoc, fontSize, text);
+            }
+            pageShapes.add(shape);
+        }
+
+        return pageShapes;
+    }
+
+    /* Get the Page as a JSON string. */
+    public String getPageJSON() {
+        JSONObject jsonObj = new JSONObject();
+
+        /* Create a hashmap representing a page (shape and shapetext also need this) */
+        HashMap<String, String> pageJSON = new HashMap<>();
+        pageJSON.put("page_id", Integer.toString(pageID));
+        pageJSON.put("page_name", pageName);
+        pageJSON.put("num_shapes", String.valueOf(shapes.size()));
+        pageJSON.put("shapes", getShapesJSON());
+
+        /* Have JSONObject parse that dictionary into a JSON format. */
+        jsonObj.putAll(pageJSON);
+
+        return prettyPrintJSON(jsonObj);
+    }
+
+    /* Parse the shapes associated with this Page into a JSON Array format (but as a string). */
+    public String getShapesJSON() {
+        String[] jsonArr = new String[shapes.size()];
+
+        for (int i = 0; i < shapes.size(); i++) {
+            jsonArr[i] = shapes.get(i).getShapeJSON();
+        }
+
+        return prettyPrintJSON(jsonArr);
+    }
+
+    /* Returns a json string for all the pages in allPages. */
+    public static String getAllPagesJSON() {
+        String[] jsonArr = new String[allPages.size()];
+
+        for (int i = 0; i < allPages.size(); i++) {
+            jsonArr[i] = allPages.get(i).getPageJSON();
+        }
+
+        Log.d("2cats", prettyPrintJSON(jsonArr));
+        return prettyPrintJSON(jsonArr);
+
+    }
+
+    /* Load possessions array into json formatted string. */
+    public static String getPossessionsJSON() {
+        String[] possJSON = new String[possessions.size()];
+
+        for (int i = 0; i < possessions.size(); i++) {
+            possJSON[i] = possessions.get(i).getShapeJSON();
+        }
+
+        return prettyPrintJSON(possJSON);
+    }
+
+    /* Load the current state of allPages and possessions inventory into a file. */
+    /* The file it's loaded into is called game.json where game is the string passed in. */
+    public static void loadIntoDatabaseFile(Context context, String game) { // game is name of game (no spaces), alphanumeric
+        JSONObject gameJSON = new JSONObject();
+
+        /* Create a hashmap representing a game.  */
+        HashMap<String, String> gameObj = new HashMap<>();
+        gameObj.put("game_name", game);
+        gameObj.put("num_pages", String.valueOf(allPages.size()));
+        gameObj.put("pages", getAllPagesJSON());
+        gameObj.put("num_possessions", String.valueOf(possessions.size()));
+        gameObj.put("possessions", getPossessionsJSON());
+
+
+        /* Have JSONObject parse that dictionary into a JSON format. */
+        gameJSON.putAll(gameObj);
+
+
+        String jsonString = prettyPrintJSON(gameObj);
+
+        /* Write to database file in internal storage. */
+        loadJSONStringIntoDatabase(context, game, jsonString);
+    }
+
+    private static void loadJSONStringIntoDatabase(Context context, String game, String jsonString) {
+        try {
+            String filename = game + ".json";
+            if (!fileExists(context, game)) { // create file
+                new File(context.getFilesDir(), filename);
+            }
+
+            FileOutputStream out = context.openFileOutput(filename, MODE_PRIVATE);
+            out.write(jsonString.getBytes());
+            out.close();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "failed to write to internal storage database");
+        }
+    }
+
+    public static String prettyPrintJSON(Object jsonObj) {
+        /* return pretty print version of json str. */
+        /* useful for debugging */
+        ObjectMapper mapper = new ObjectMapper();
+        String json = "";
+        try {
+            json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObj); // return string format
+        } catch (Exception ex) {
+            Log.d("pupper", "error with pretty printing json in getShapesJSON() page.");
+            ex.printStackTrace();
+        }
+
+        // the horror...
+        json = json.replace("\\\"", "\"").replace("\\n", "\n");
+        json = json.replace("\"{", "{").replace( "}\"", "}");
+        json = json.replace("\"[", "[").replace("]\"", "]");
+        json = json.replace("\"null\"", "null");
+        json = json.replace("\"true\"", "true").replace("\"false\"", "false");
+        json = json.replace(", {", ", \n{");
+
+        Log.d("cattty", json);
+
+        return json;
+    }
+
+
+    /* Loading sample database into internal storage.
+    *
+    * Purpose: We can't write to files in res/raw, so we can't maintain
+    *       our database files in that location. So
+    *       we will be using Android's internal storage, which stores
+    *       files privately on the user's phone. Since we are using an
+    *       emulator and we don't all share the same emulator (i.e. each
+    *       emulator will have its own local files), in order to get a sample
+    *       database file into everyone's emulator, I am placing the sample file
+    *       into res/raw and loading it into your emulator's internal storage
+    *       if you call loadDatabase().
+    *
+    *       This doesn't affect the functionality defined in specs. The sample
+    *       file is just so y'all can test things! When you save to the database,
+    *       it will be stored in your emulator phone's internal storage, so the
+    *       data is persistent.
+    * */
+    private static void loadSampleDatabaseIntoInternalStorage(Context context) {
+        String jsonString = getSampleDatabaseFile(context);
+        loadJSONStringIntoDatabase(context, SAMPLE_DATA_FILE, jsonString);
+    }
+
+    /* sampledatabase.json in res/raw folder. */
+    private static String getSampleDatabaseFile(Context context) {
+        StringBuilder ret = new StringBuilder();
+        try {
+            InputStream in = context.getResources().openRawResource(
+                    context.getResources().getIdentifier(SAMPLE_DATA_FILE,
+                            "raw", context.getPackageName()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                ret.append(line);
+            }
+
+            in.close();
+        } catch (IOException ex) {
+            Log.d("dog", "Error getting json data from file " + SAMPLE_DATA_FILE + " in getJSONDataFromFile.");
+        }
+        return ret.toString();
+    }
+
+    public static void test(Context context) {
+        Page.loadDatabase(context,SAMPLE_DATA_FILE);
+        ArrayList<Page> pages = Page.getPages();
+        String string1 = "";
+        for (Page page : pages) {
+            string1 += page.toString();
+            string1 += page.getPageJSON();
+        }
+
+        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE);
+
+        String string2 = "";
+        for (Page page : pages) {
+            string2 += page.toString();
+            string2 += page.getPageJSON();
+        }
+
+        Log.d("dog2", string1.equals(string2) ? "OKAY" : "NOPE");
     }
 }
