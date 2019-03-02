@@ -98,6 +98,8 @@ public class Page {
         return pageID;
     }
 
+    public static void setPossessions(ArrayList<Shape> poss) { possessions = poss; }
+
     // Execute onEnter triggers for every shape on this page.
     // page.onEnter(this, canvas)
     public void onEnter(Context context, Canvas canvas) {
