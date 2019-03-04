@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
-import android.util.Log;
 
 
 /**
@@ -70,7 +69,7 @@ public class Shape {
     public Shape() {
         /* Default values, all attributes should be set using setters. */
         this("", -1.0f, -1.0f, -1.0f, -1.0f, "", "",
-                -1,null, false, false);
+                -1,null, true, true);
     }
 
     // init drawables and map the imgNames to the respective drawables
@@ -90,6 +89,11 @@ public class Shape {
         drawables.put("duck", duckDrawable);
         drawables.put("fire", fireDrawable);
         drawables.put("mystic", mysticDrawable);
+    }
+
+    public static HashMap<String, BitmapDrawable> getDrawables(Context context) {
+        initDrawables(context);
+        return drawables;
     }
 
     /*
@@ -115,7 +119,7 @@ public class Shape {
             Bitmap image = drawables.get(imgName).getBitmap();
 
             // scale image by width and height
-            Bitmap scaled = Bitmap.createScaledBitmap(image, (int) height, (int) width, true);
+            Bitmap scaled = Bitmap.createScaledBitmap(image, (int) width, (int) height, true);
 
             // draw scaled image
             canvas.drawBitmap(scaled, x, y, null); // may need paint later for extensions
