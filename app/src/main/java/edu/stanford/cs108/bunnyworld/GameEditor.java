@@ -1,17 +1,38 @@
 package edu.stanford.cs108.bunnyworld;
 
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.SimpleExpandableListAdapter;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +45,9 @@ public class GameEditor extends AppCompatActivity {
 
     ExpandableListView expScriptTriggers;
     SimpleExpandableListAdapter expListAdapter;
+    static Page currPage;
+    int selectedResource;
+    static int selectedShape;
     private String triggers[] = {"On Click", "On Enter", "On Drop", "Property" };
     private String scriptActions[] = {"GoTo", "PlaySound", "Visibility"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
@@ -36,8 +60,20 @@ public class GameEditor extends AppCompatActivity {
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+
+        Intent intent = getIntent();
+
+        // pass page ID
+        int pageID = intent.getIntExtra("PAGE ID", 0);
+        Page.loadDatabase(this, "sampledatafile");
+        ArrayList<Page> allPages = Page.getPages();
+//         currPage = allPages.get(pageID - 1);
+        currPage = allPages.get(0);
+
         // TO DO: Set to page name
-        getSupportActionBar().setTitle("Page name");
+        getSupportActionBar().setTitle(currPage.getPageName());
+
 
         List<Map<String, String>> groupData = new ArrayList<Map<String, String>>();
         List<List<Map<String, String>>> childData = new ArrayList<List<Map<String, String>>>();
@@ -89,12 +125,48 @@ public class GameEditor extends AppCompatActivity {
                     }
                 }
         );
+
+        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
+        drawResources(resources);
+
+        selectedResource = -1;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_game_editor, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void drawResources(Map<String, BitmapDrawable> resources) {
+        LinearLayout resourceView = findViewById(R.id.resource_scroll);
+
+        for (Map.Entry<String, BitmapDrawable> resource : resources.entrySet()) {
+            final ImageView resourceV = new ImageView(this);
+            Bitmap resourceBitmap = resource.getValue().getBitmap();
+            resourceV.setImageBitmap(resourceBitmap);
+            resourceV.setAdjustViewBounds(true);
+            resourceV.setPadding(5,5,5,5);
+            resourceV.setId(View.generateViewId());
+            resourceV.setTag(resource.getKey());
+
+            resourceV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (selectedResource != -1) {
+                        ImageView currResource = findViewById(selectedResource);
+                        currResource.setBackgroundColor(getResources().getColor(R.color.light_grey));
+                    }
+
+                    selectedResource = resourceV.getId();
+                    resourceV.setBackgroundColor(Color.BLACK);
+                    CanvasView.setSelectedResource(resourceV.getId());
+                }
+            });
+
+            resourceView.addView(resourceV);
+        }
     }
 
     private void showTriggerDialogs(String action, int groupPosition) {
@@ -123,6 +195,8 @@ public class GameEditor extends AppCompatActivity {
             propertyDialog.setPositiveButton("Ok", null);
             propertyDialog.setNegativeButton("Cancel", null);
 
+            final Shape curr = currPage.getShapes().get(selectedShape);
+
             final AlertDialog property = propertyDialog.create();
             property.setOnShowListener(new DialogInterface.OnShowListener() {
                 @Override
@@ -132,7 +206,26 @@ public class GameEditor extends AppCompatActivity {
 
                         @Override
                         public void onClick(View v) {
-                            // set script
+                            System.out.println("triggered property dialog");
+                            EditText x_val = (EditText) ((AlertDialog) property).findViewById(R.id.editable_X);
+                            EditText y_val = (EditText) ((AlertDialog) property).findViewById(R.id.editable_Y);
+                            EditText width = (EditText) ((AlertDialog) property).findViewById(R.id.editable_width);
+                            EditText height = (EditText) ((AlertDialog) property).findViewById(R.id.editable_height);
+                            Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
+                            Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
+
+                            curr.setX(Float.parseFloat(x_val.getText().toString()));
+                            System.out.println(Float.parseFloat(x_val.getText().toString()));
+                            System.out.println(curr.getX());
+                            curr.setY(Float.parseFloat(y_val.getText().toString()));
+                            curr.setWidth(Float.parseFloat(width.getText().toString()));
+                            curr.setHeight(Float.parseFloat(height.getText().toString()));
+                            curr.setMovable(isMovable.isChecked());
+                            curr.setVisible(!isHidden.isChecked());
+
+//                            CanvasView canvas = findViewById (R.id.canvas);
+//                            canvas.invalidate();
+
                             property.dismiss();
                         }
                     });
@@ -149,6 +242,20 @@ public class GameEditor extends AppCompatActivity {
             });
 
             property.show();
+
+            EditText x_val = (EditText) ((AlertDialog) property).findViewById(R.id.editable_X);
+            EditText y_val = (EditText) ((AlertDialog) property).findViewById(R.id.editable_Y);
+            EditText width = (EditText) ((AlertDialog) property).findViewById(R.id.editable_width);
+            EditText height = (EditText) ((AlertDialog) property).findViewById(R.id.editable_height);
+            Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
+            Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
+
+            x_val.setText(String.valueOf(curr.getX()));
+            y_val.setText(String.valueOf(curr.getY()));
+            width.setText(String.valueOf(curr.getWidth()));
+            height.setText(String.valueOf(curr.getHeight()));
+            isMovable.setChecked(curr.isMovable());
+            isHidden.setChecked(!curr.isVisible());
         }
     }
 
@@ -161,7 +268,14 @@ public class GameEditor extends AppCompatActivity {
 
         // TO DO: set the checkedItem to the current page that it goes to
         // TO DO: replace with the array of pages
-        gotoDialog.setSingleChoiceItems( new String[] {"Page 1", "Page 2"}, 0 , new DialogInterface.OnClickListener() {
+        ArrayList<Page> allPages = Page.getPages();
+
+        String[] pageNames = new String[allPages.size()];
+
+        for(int i = 0; i < allPages.size(); i++) {
+            pageNames[i] = allPages.get(i).getPageName();
+        }
+        gotoDialog.setSingleChoiceItems( pageNames, 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 return;
@@ -423,7 +537,7 @@ public class GameEditor extends AppCompatActivity {
 
         delete.show();
     }
-
+    
     public void saveObject(View view) {
 
         // TO DO: pass in object name
@@ -463,6 +577,7 @@ public class GameEditor extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         // TO DO: change page name
+                        // validate that it is a unique page name
                         // verify that there are no spaces
                         pageName.dismiss();
                     }
@@ -480,5 +595,13 @@ public class GameEditor extends AppCompatActivity {
         });
 
         pageName.show();
+    }
+
+    static public Page getCurrPage() {
+        return currPage;
+    }
+
+    static public void setSelectedShaped(int i) {
+        selectedShape = i;
     }
 }

@@ -13,7 +13,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
-import android.util.Log;
+
+import org.json.simple.JSONObject;
 
 
 /**
@@ -23,14 +24,15 @@ import android.util.Log;
  */
 public class Shape {
 
-    private String name;        /* Name of shape. Must be unique to all pages. */
-    private String imgName;     /* Name of image (in drawable, no extension). */
-    private float x, y;           /* x and y coordinate of Shape. */
-    private float width, height;  /* width and height of Shape. */
-    private int pageID;         /* The page this Shape is on. */
-    private ShapeText textObj;     /* ShapeText object, requires xLoc, yLoc, fontSize, and text string. */
-    private boolean isVisible;  /* Is this Shape visible? */
-    private boolean isMovable;  /* Is this Shape movable? */
+    private String name;         /* Name of shape. Must be unique to all pages. */
+    private String imgName;      /* Name of image (in drawable, no extension). */
+    private float x, y;          /* x and y coordinate of Shape. */
+    private float width, height; /* width and height of Shape. */
+    private int pageID;          /* The page this Shape is on. */
+    private ShapeText textObj;   /* ShapeText object, requires xLoc, yLoc, fontSize, and text string. */
+    private boolean isVisible;   /* Is this Shape visible? */
+    private boolean isMovable;   /* Is this Shape movable? */
+    private String script;       /* Script given to shape. */
 
     /* Grey paint object (for when there's no image). */
     private Paint grayPaint = new Paint();
@@ -70,7 +72,7 @@ public class Shape {
     public Shape() {
         /* Default values, all attributes should be set using setters. */
         this("", -1.0f, -1.0f, -1.0f, -1.0f, "", "",
-                -1,null, false, false);
+                -1,null, true, true);
     }
 
     // init drawables and map the imgNames to the respective drawables
@@ -90,6 +92,11 @@ public class Shape {
         drawables.put("duck", duckDrawable);
         drawables.put("fire", fireDrawable);
         drawables.put("mystic", mysticDrawable);
+    }
+
+    public static HashMap<String, BitmapDrawable> getDrawables(Context context) {
+        initDrawables(context);
+        return drawables;
     }
 
     /*
@@ -115,7 +122,7 @@ public class Shape {
             Bitmap image = drawables.get(imgName).getBitmap();
 
             // scale image by width and height
-            Bitmap scaled = Bitmap.createScaledBitmap(image, (int) height, (int) width, true);
+            Bitmap scaled = Bitmap.createScaledBitmap(image, (int) width, (int) height, true);
 
             // draw scaled image
             canvas.drawBitmap(scaled, x, y, null); // may need paint later for extensions
@@ -261,6 +268,29 @@ public class Shape {
 
     }
 
+    // returns the json string for this shape
+    public String getShapeJSON() {
+        JSONObject jsonObj = new JSONObject();
+
+        /* Create a hashmap representing a shape. */
+        HashMap<String, String> shapeJSON = new HashMap<>();
+        shapeJSON.put("name", name);
+        shapeJSON.put("imgName", imgName);
+        shapeJSON.put("isVisible", isVisible ? "true" : "false");
+        shapeJSON.put("isMovable", isMovable ? "true" : "false");
+        shapeJSON.put("x", String.valueOf(x));
+        shapeJSON.put("y", String.valueOf(y));
+        shapeJSON.put("width", String.valueOf(width));
+        shapeJSON.put("height", String.valueOf(height));
+        shapeJSON.put("textObj", textObj == null ? "null" : textObj.getShapetextJSON());
+        shapeJSON.put("script", script);
+
+        /* Have JSONObject parse that dictionary into a JSON format. */
+        jsonObj.putAll(shapeJSON);
+
+        return Page.prettyPrintJSON(jsonObj);
+    }
+
     public String getName() { return name; }
 
     public String getImgName() { return imgName; }
@@ -281,9 +311,13 @@ public class Shape {
 
     public String getText() { return textObj.getText(); }
 
+    public String getScript() { return script; }
+
     public static ArrayList<Shape> getAllShapes() { return allShapes; }
 
+    // sets script ivar but also parses script
     public void setScript(String script) {
+        this.script = script;
         this.commands = parseScript(script);
     }
 
@@ -399,6 +433,23 @@ public class Shape {
         public int getFontSize() { return fontSize; }
 
         public String getText() { return text; }
+
+        // JSON format for shapetext
+        public String getShapetextJSON() {
+            JSONObject jsonObj = new JSONObject();
+
+            /* Create a hashmap representing a shapetext. */
+            HashMap<String, String> shapeTextJSON = new HashMap<>();
+            shapeTextJSON.put("xLoc", String.valueOf(xLoc));
+            shapeTextJSON.put("yLoc", String.valueOf(yLoc));
+            shapeTextJSON.put("text", text);
+            shapeTextJSON.put("fontSize", String.valueOf(fontSize));
+
+            /* Have JSONObject parse that dictionary into a JSON format. */
+            jsonObj.putAll(shapeTextJSON);
+
+            return Page.prettyPrintJSON(jsonObj);
+        }
 
         public void setX(float newX) { this.xLoc = newX; }
 
