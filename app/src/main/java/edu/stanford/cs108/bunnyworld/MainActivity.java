@@ -2,8 +2,10 @@ package edu.stanford.cs108.bunnyworld;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
 import android.widget.*;
 import android.view.View;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,5 +35,10 @@ public class MainActivity extends AppCompatActivity {
         Spinner gamePage = (Spinner) findViewById(R.id.gamePage);
         String pageNum = gamePage.getSelectedItem().toString();
         // To do: change to pageNum
+    }
+
+    public void goToDir(View view) {
+        Intent intent = new Intent (this, PageDirectory.class);
+        startActivity(intent);
     }
 }
