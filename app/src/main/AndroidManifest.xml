@@ -9,10 +9,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".GameEditor"></activity>
+        <activity android:name=".GameActivity"></activity>
         <activity android:name=".PageDirectory" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".GameActivity">
+        <activity android:name=".GameEditor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
