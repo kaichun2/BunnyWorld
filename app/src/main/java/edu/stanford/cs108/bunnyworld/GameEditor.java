@@ -301,7 +301,6 @@ public class GameEditor extends AppCompatActivity {
                         String [] oldScript;
                         if (script != null) {
                             oldScript = script.split(" ");
-                            System.out.println(Arrays.toString(oldScript));
                         } else {
                             oldScript = null;
                         }
@@ -313,7 +312,7 @@ public class GameEditor extends AppCompatActivity {
                         if (oldScript != null) {
                             for (int i = 0; i < oldScript.length - 3; i++) {
                                 if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals("goto")) {
-                                    oldScript[i + 3] = checkedItem.toString();
+                                    oldScript[i + 3] = checkedItem.toString() + ";";
                                     didUpdate = true;
                                 }
                             }

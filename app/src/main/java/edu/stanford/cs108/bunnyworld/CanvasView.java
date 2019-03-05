@@ -7,8 +7,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +28,7 @@ public class CanvasView extends View {
     static int numShapes;
     int selectedShape;
     Paint blueOutlinePaint;
+    static private float xDown, yDown, offsetX = 0, offsetY = 0;
 
     public CanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -61,10 +65,13 @@ public class CanvasView extends View {
 
     }
 
+
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        float xDown, yDown;
+
+        // Documentation for dragging: https://developer.android.com/training/gestures/scale
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -80,7 +87,32 @@ public class CanvasView extends View {
                     selectShape(xDown, yDown);
                 }
 
+                if (selectedShape != -1) {
+
+                    Shape curr = pageShapes.get(selectedShape);
+
+                    offsetX = xDown - curr.getX();
+                    offsetY = yDown - curr.getY();
+
+                }
+
                 invalidate();
+            case MotionEvent.ACTION_MOVE:
+
+                if (selectedShape != -1) {
+
+                    Shape curr = pageShapes.get(selectedShape);
+
+                    float mouseX = event.getX();
+                    float mouseY = event.getY();
+
+                    curr.setX(mouseX - offsetX);
+                    curr.setY(mouseY - offsetY);
+
+                    invalidate();
+
+                }
+
         }
 
         return true;
