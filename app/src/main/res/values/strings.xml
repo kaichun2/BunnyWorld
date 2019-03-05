@@ -15,4 +15,7 @@
     <string name="hidden">Hidden</string>
     <string name="on">Y</string>
     <string name="off">N</string>
+    <string name="play_game">Play Game</string>
+    <string name="create_game">Create Game</string>
+    <string name="edit_game">Edit Game</string>
 </resources>
