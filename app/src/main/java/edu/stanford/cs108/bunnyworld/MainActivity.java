@@ -90,9 +90,10 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: change page name
+                        // TO DO:
                         // validate that it is a unique game name
                         // verify that there are no spaces
+                        // restrict so that it can't equal gamenamesfile
                         EditText newPageName = ((AlertDialog) createGame).findViewById(R.id.editable_page_name);
 
                         // pass intent
