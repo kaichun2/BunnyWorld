@@ -54,6 +54,9 @@ public class Page {
     /* Feel free to use this when testing your code. */
     public static final String SAMPLE_DATA_FILE = "sampledatafile";
 
+    /* Text file where we will store the names of the games we have files for. */
+    public static final String GAME_NAMES_FILE = "gamesnamesfile";
+
     public Page(String pageName, int pageID, ArrayList<Shape> shapes) {
         this.pageName = pageName;
         this.pageID = pageID;
@@ -190,7 +193,7 @@ public class Page {
         /* For testing purposes (allows sample database file in internal storage): */
         if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadSampleDatabaseIntoInternalStorage(context);
 
-        String json = getJSONDataFromFile(context, nameOfGame + ".json");
+        String json = getDataFromFile(context, nameOfGame + ".json");
         loadDatabaseFromJSONString(context, json);
     }
 
@@ -217,7 +220,6 @@ public class Page {
             Shape.initDrawables(context); // need context in order to read res/raw
 
         } catch(Exception ex) {
-            System.out.println("Error parsing database file.");
             Log.d("dog", "file reading failed");
             ex.printStackTrace();
         }
@@ -228,7 +230,7 @@ public class Page {
     }
 
     // file is in internal storage
-    private static String getJSONDataFromFile(Context context, String filename) {
+    private static String getDataFromFile(Context context, String filename) {
         StringBuilder ret = new StringBuilder();
         try {
 
@@ -247,7 +249,7 @@ public class Page {
             in.close();
 
         } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + filename + " in getJSONDataFromFile.");
+            Log.d("dog", "Error getting json data from file " + filename + " in getDataFromFile.");
         }
         return ret.toString();
     }
@@ -388,7 +390,7 @@ public class Page {
     private static void loadJSONStringIntoDatabase(Context context, String game, String jsonString) {
         try {
             String filename = game + ".json";
-            if (!fileExists(context, game)) { // create file
+            if (!fileExists(context, filename)) { // create file
                 new File(context.getFilesDir(), filename);
             }
 
@@ -396,11 +398,133 @@ public class Page {
             out.write(jsonString.getBytes());
             out.close();
 
+            updateListOfGames(context, game);
+
         } catch (Exception ex) {
             ex.printStackTrace();
             Log.d("error", "failed to write to internal storage database");
         }
     }
+
+    /*
+    We will be keeping a .txt file on the internal storage that contains
+    the names of the games, separated by new line characters.
+     */
+    private static void updateListOfGames(Context context, String game) {
+        String filename = GAME_NAMES_FILE + ".txt";
+        try {
+            if (!fileExists(context, filename)) {
+                new File(context.getFilesDir(), filename);
+            }
+
+            String fileText = getDataFromFile(context, filename);
+            String[] games = fileText.split(" ");
+
+            boolean isInFile = false;   // is game already in file?
+            for (String gameInFile : games) {
+                if (gameInFile.equals(game)) {
+                    isInFile = true;
+                    break;
+                }
+            }
+
+            if (!isInFile) { // if game isn't already in file then we should add it
+                if (!fileText.isEmpty()) {
+                    fileText += " " + game; // if not empty, new line comes before
+                } else {
+                    fileText += game; // if empty, just add game itself
+                }
+            }
+
+            FileOutputStream out = context.openFileOutput(filename, MODE_PRIVATE);
+            out.write(fileText.getBytes());
+            out.close();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "error when writing to internal storage - update list of games");
+        }
+    }
+
+    /* Returns an arraylist of all the games we have data files for. */
+    public static ArrayList<String> getGames(Context context) {
+        ArrayList<String> games = new ArrayList<>();
+        try {
+            String fileText = getDataFromFile(context, GAME_NAMES_FILE + ".txt");
+
+            String[] fileGames = fileText.split(" ");
+            for (String game : fileGames) {
+                games.add(game);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "error when getting games from gamesnamefile.txt");
+        }
+        return games;
+    }
+
+    /* Reset/delete the entire database. Empties game_names file. */
+    public static void deleteAllGames(Context context) {
+        ArrayList<String> gamesToDelete = Page.getGames(context);
+
+        for (String game : gamesToDelete) {
+            deleteGameFromDatabase(context, game);
+        }
+
+        /* Empty the game_names file. */
+        try {
+            FileOutputStream out = context.openFileOutput(GAME_NAMES_FILE + ".txt", MODE_PRIVATE);
+            out.write("".getBytes());
+            out.close();
+        } catch (Exception ex) {
+            Log.d("error" , "error when trying to delete database.");
+        }
+
+    }
+
+    /* Deletes specified game's file in database and update game_names file. */
+    /* Files should be json (as they are normally stored).*/
+    public static void deleteGame(Context context, String game) {
+        deleteGameFromDatabase(context, game);
+
+        // update game names file
+        ArrayList<String> games = Page.getGames(context);
+        StringBuilder updatedGames = new StringBuilder();
+
+        for (int i = 0; i < games.size(); i++) {
+            String chosenGame = games.get(i);
+            if (!chosenGame.equals(game)) {
+                if (i > 0) updatedGames.append(" "); // first element won't have a space
+                updatedGames.append(chosenGame);
+            }
+        }
+
+        try {
+            FileOutputStream out = context.openFileOutput(GAME_NAMES_FILE + ".txt", MODE_PRIVATE);
+            out.write(updatedGames.toString().getBytes());
+            out.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "error when attempting to delete game from game names file.");
+        }
+    }
+
+    /*
+     * This particular function will only delete the game from
+     * the database as opposed to also deleting it from the game_names
+     * file. Used internally. It's just fod decomposition.
+     */
+    private static void deleteGameFromDatabase(Context context, String game) {
+        File fileToDelete = new File(context.getFilesDir(), game + ".json");
+        fileToDelete.delete();
+    }
+
+    /*
+    Delete the specified game in the database.
+    (Does nothing if game doesn't exist)
+    Removes that particular game from game_names file.
+    */
 
     public static String prettyPrintJSON(Object jsonObj) {
         /* return pretty print version of json str. */
@@ -465,28 +589,53 @@ public class Page {
 
             in.close();
         } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + SAMPLE_DATA_FILE + " in getJSONDataFromFile.");
+            Log.d("dog", "Error getting json data from file " + SAMPLE_DATA_FILE + " in getSampleDatabaseFile.");
         }
         return ret.toString();
     }
 
     public static void test(Context context) {
-        Page.loadDatabase(context,SAMPLE_DATA_FILE);
-        ArrayList<Page> pages = Page.getPages();
-        String string1 = "";
-        for (Page page : pages) {
-            string1 += page.toString();
-            string1 += page.getPageJSON();
-        }
-
-        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE);
-
-        String string2 = "";
-        for (Page page : pages) {
-            string2 += page.toString();
-            string2 += page.getPageJSON();
-        }
-
-        Log.d("dog2", string1.equals(string2) ? "OKAY" : "NOPE");
+//        Page.loadDatabase(context, SAMPLE_DATA_FILE);
+//        ArrayList<Page> pages = Page.getPages();
+//        String string1 = "";
+//        for (Page page : pages) {
+//            string1 += page.toString();
+//            string1 += page.getPageJSON();
+//        }
+//
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE);
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "1");
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "2");
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "3");
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "4");
+//
+//
+//        String string2 = "";
+//        for (Page page : pages) {
+//            string2 += page.toString();
+//            string2 += page.getPageJSON();
+//        }
+//
+//        Log.d("dog2", string1.equals(string2) ? "OKAY" : "NOPE");
+//
+//
+//        ArrayList<String> games = Page.getGames(context);
+//        for (String game: games) {
+//            Log.d("waddup", game);
+//        }
+//
+//        for (String game : games) {
+//            deleteGame(context, game);
+//        }
+//
+//        deleteAllGames(context);
+//
+//        deleteGame(context, "nonexistent");
+//
+//        ArrayList<String> games2 = Page.getGames(context);
+//        Log.d("waddup", "starting games2");
+//        for (String game1: games2) {
+//            Log.d("waddup", game1);
+//        }
     }
 }
