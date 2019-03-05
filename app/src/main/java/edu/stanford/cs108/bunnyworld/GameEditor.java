@@ -36,7 +36,10 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +51,8 @@ public class GameEditor extends AppCompatActivity {
     static Page currPage;
     int selectedResource;
     static int selectedShape;
-    private String triggers[] = {"On Click", "On Enter", "On Drop", "Property" };
-    private String scriptActions[] = {"GoTo", "PlaySound", "Visibility"};
+    private String triggers[] = {"on click", "on enter", "on drop", "property" };
+    private String scriptActions[] = {"goto", "play", "visibility"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
 
     @Override
@@ -223,9 +226,6 @@ public class GameEditor extends AppCompatActivity {
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
 
-//                            CanvasView canvas = findViewById (R.id.canvas);
-//                            canvas.invalidate();
-
                             property.dismiss();
                         }
                     });
@@ -250,16 +250,17 @@ public class GameEditor extends AppCompatActivity {
             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
+            isMovable.setChecked(curr.isMovable());
+            isHidden.setChecked(!curr.isVisible());
             x_val.setText(String.valueOf(curr.getX()));
             y_val.setText(String.valueOf(curr.getY()));
             width.setText(String.valueOf(curr.getWidth()));
             height.setText(String.valueOf(curr.getHeight()));
-            isMovable.setChecked(curr.isMovable());
-            isHidden.setChecked(!curr.isVisible());
+
         }
     }
 
-    private void showGoToDialog(int groupPosition) {
+    private void showGoToDialog(final int groupPosition) {
         final AlertDialog.Builder gotoDialog = new AlertDialog.Builder(GameEditor.this);
         gotoDialog.setTitle("Choose the page to go to:");
 
@@ -267,7 +268,6 @@ public class GameEditor extends AppCompatActivity {
         gotoDialog.setNegativeButton("Cancel", null);
 
         // TO DO: set the checkedItem to the current page that it goes to
-        // TO DO: replace with the array of pages
         ArrayList<Page> allPages = Page.getPages();
 
         String[] pageNames = new String[allPages.size()];
@@ -282,6 +282,8 @@ public class GameEditor extends AppCompatActivity {
             }
         });
 
+        final Shape curr = currPage.getShapes().get(selectedShape);
+
         final AlertDialog goTo = gotoDialog.create();
         goTo.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
@@ -291,7 +293,48 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // set script
+
+                        ListView lw = ((AlertDialog) goTo).getListView();
+                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+
+                        String script = curr.getScript();
+                        String [] oldScript;
+                        if (script != null) {
+                            oldScript = script.split(" ");
+                            System.out.println(Arrays.toString(oldScript));
+                        } else {
+                            oldScript = null;
+                        }
+
+                        String [] trigger = triggers[groupPosition].split(" ");
+                        String newScript = "";
+                        boolean didUpdate = false;
+
+                        if (oldScript != null) {
+                            for (int i = 0; i < oldScript.length - 3; i++) {
+                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals("goto")) {
+                                    oldScript[i + 3] = checkedItem.toString();
+                                    didUpdate = true;
+                                }
+                            }
+                        }
+
+
+                        if (!didUpdate) {
+                            if (script != null) {
+                                newScript = script + " " + triggers[groupPosition] + " goto " + checkedItem.toString() + ";";
+                            } else {
+                                newScript = " " + triggers[groupPosition] + " goto " + checkedItem.toString() + ";";
+                            }
+
+                        } else {
+                            for (int i = 0; i < oldScript.length; i++) {
+                                newScript += oldScript[i] + " ";
+                            }
+                        }
+
+                        curr.setScript(newScript);
+
                         goTo.dismiss();
                     }
                 });
@@ -310,7 +353,7 @@ public class GameEditor extends AppCompatActivity {
         goTo.show();
     }
 
-    private void showPlaySoundDialog(int groupPosition) {
+    private void showPlaySoundDialog(final int groupPosition) {
         final AlertDialog.Builder playSoundDialog = new AlertDialog.Builder(GameEditor.this);
         playSoundDialog.setTitle("Choose the sound to play:");
 
@@ -342,12 +385,53 @@ public class GameEditor extends AppCompatActivity {
                     }
                 });
 
+                final Shape curr = currPage.getShapes().get(selectedShape);
+
                 Button ok = playSound.getButton(AlertDialog.BUTTON_POSITIVE);
                 ok.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: set script
+                        ListView lw = ((AlertDialog) playSound).getListView();
+                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+
+                        String script = curr.getScript();
+                        String [] oldScript;
+                        if (script != null) {
+                            oldScript = script.split(" ");
+                            System.out.println(Arrays.toString(oldScript));
+                        } else {
+                            oldScript = null;
+                        }
+
+                        String [] trigger = triggers[groupPosition].split(" ");
+                        String newScript = "";
+                        boolean didUpdate = false;
+
+                        if (oldScript != null) {
+                            for (int i = 0; i < oldScript.length - 3; i++) {
+                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals("play")) {
+                                    oldScript[i + 3] = checkedItem.toString();
+                                    didUpdate = true;
+                                }
+                            }
+                        }
+
+
+                        if (!didUpdate) {
+                            if (script != null) {
+                                newScript = script + " " + triggers[groupPosition] + " play " + checkedItem.toString() + ";";
+                            } else {
+                                newScript = " " + triggers[groupPosition] + " play " + checkedItem.toString() + ";";
+                            }
+
+                        } else {
+                            for (int i = 0; i < oldScript.length; i++) {
+                                newScript += oldScript[i] + " ";
+                            }
+                        }
+
+                        curr.setScript(newScript);
                         playSound.dismiss();
                     }
                 });
@@ -367,7 +451,7 @@ public class GameEditor extends AppCompatActivity {
 
     }
 
-    private void showVisiblityDialog(int groupPosition) {
+    private void showVisiblityDialog(final int groupPosition) {
         final AlertDialog.Builder visibilityDialog = new AlertDialog.Builder(GameEditor.this);
         visibilityDialog.setTitle("Choose the visibility:");
 
@@ -375,12 +459,14 @@ public class GameEditor extends AppCompatActivity {
         visibilityDialog.setNegativeButton("Cancel", null);
 
         // TO DO: replace with the current visibility
-        visibilityDialog.setSingleChoiceItems( new String[] {"Hide", "Show"}, 0 , new DialogInterface.OnClickListener() {
+        visibilityDialog.setSingleChoiceItems( new String[] {"hide", "show"}, 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 return;
             }
         });
+
+        final Shape curr = currPage.getShapes().get(selectedShape);
 
         final AlertDialog visible = visibilityDialog.create();
         visible.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -391,7 +477,46 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // set script
+                        ListView lw = ((AlertDialog) visible).getListView();
+                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+
+                        String script = curr.getScript();
+                        String [] oldScript;
+                        if (script != null) {
+                            oldScript = script.split(" ");
+                            System.out.println(Arrays.toString(oldScript));
+                        } else {
+                            oldScript = null;
+                        }
+
+                        String [] trigger = triggers[groupPosition].split(" ");
+                        String newScript = "";
+                        boolean didUpdate = false;
+
+                        if (oldScript != null) {
+                            for (int i = 0; i < oldScript.length - 3; i++) {
+                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals(checkedItem.toString())) {
+                                    oldScript[i + 3] = curr.getName();
+                                    didUpdate = true;
+                                }
+                            }
+                        }
+
+
+                        if (!didUpdate) {
+                            if (script != null) {
+                                newScript = script + " " + triggers[groupPosition] + " " + checkedItem.toString() + " " + curr.getName() + ";";
+                            } else {
+                                newScript = triggers[groupPosition] + " " + checkedItem.toString() + " " + curr.getName() + ";";
+                            }
+
+                        } else {
+                            for (int i = 0; i < oldScript.length; i++) {
+                                newScript += oldScript[i] + " ";
+                            }
+                        }
+
+                        curr.setScript(newScript);
                         visible.dismiss();
                     }
                 });
@@ -416,7 +541,8 @@ public class GameEditor extends AppCompatActivity {
         scriptDialog.setTitle("Current script:");
 
         // TO DO: get actual script
-        scriptDialog.setMessage("<Input current script>");
+        final Shape curr = currPage.getShapes().get(selectedShape);
+        scriptDialog.setMessage(curr.getScript());
 
         scriptDialog.setPositiveButton("Ok", null);
 
@@ -451,8 +577,6 @@ public class GameEditor extends AppCompatActivity {
 
     public void changeObjName(View view) {
 
-        // TO DO: set object name
-
         RelativeLayout objNameHeader = findViewById(R.id.obj_name_header);
 
         objNameHeader.setVisibility(view.VISIBLE);
@@ -460,6 +584,14 @@ public class GameEditor extends AppCompatActivity {
         LinearLayout editableObjName = findViewById(R.id.editable_obj_name);
 
         editableObjName.setVisibility(view.GONE);
+
+        EditText newObjName = findViewById(R.id.change_obj_name);
+
+        final Shape curr = currPage.getShapes().get(selectedShape);
+        curr.setName(newObjName.getText().toString());
+
+        TextView objName = findViewById(R.id.obj_name);
+        objName.setText(curr.getName());
     }
 
     public void deleteObject(View view) {
@@ -471,6 +603,8 @@ public class GameEditor extends AppCompatActivity {
         deleteDialog.setPositiveButton("Delete", null);
         deleteDialog.setNegativeButton("Cancel", null);
 
+        final Shape curr = currPage.getShapes().get(selectedShape);
+
         final AlertDialog delete = deleteDialog.create();
         delete.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
@@ -481,6 +615,18 @@ public class GameEditor extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         // TO DO: delete object
+                        // delete from array list
+                        currPage.getShapes().remove(curr);
+                        selectedShape = -1;
+
+                        LinearLayout objProperties = findViewById(R.id.obj_properties);
+                        objProperties.setVisibility(v.GONE);
+
+                        TextView clickObj = findViewById(R.id.click_obj);
+                        clickObj.setVisibility(v.VISIBLE);
+
+                        CanvasView canvasView = findViewById(R.id.canvas);
+                        canvasView.invalidate();
                         delete.dismiss();
                     }
                 });
@@ -519,6 +665,7 @@ public class GameEditor extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         // TO DO: delete object
+                        // remove from the arraylist
                         delete.dismiss();
                     }
                 });
@@ -541,21 +688,24 @@ public class GameEditor extends AppCompatActivity {
     public void saveObject(View view) {
 
         // TO DO: pass in object name
-        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved", Toast.LENGTH_SHORT);
+        final Shape curr = currPage.getShapes().get(selectedShape);
+
+        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + curr.getName(), Toast.LENGTH_SHORT);
 
         saveToast.show();
 
         // TO DO: verify save
+        // loadIntoDatabaseFile
     }
 
     public void savePage(MenuItem item) {
 
-        // TO DO: pass in page name
-        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved", Toast.LENGTH_SHORT);
+        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + currPage.getPageName(), Toast.LENGTH_SHORT);
 
         saveToast.show();
 
         // TO DO: verify save
+        // loadIntoDatabaseFile
     }
 
     public void editPageName(MenuItem item) {
@@ -579,6 +729,14 @@ public class GameEditor extends AppCompatActivity {
                         // TO DO: change page name
                         // validate that it is a unique page name
                         // verify that there are no spaces
+                        EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
+
+                        currPage.setPageName(newPageName.getText().toString());
+
+
+                        getSupportActionBar().setTitle(currPage.getPageName());
+
+
                         pageName.dismiss();
                     }
                 });
