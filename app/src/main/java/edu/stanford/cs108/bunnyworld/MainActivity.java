@@ -1,5 +1,6 @@
 package edu.stanford.cs108.bunnyworld;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void goToDir(View view) {
-        Intent intent = new Intent (this, PageDirectory.class);
-        startActivity(intent);
+//        Intent intent = new Intent (this, PageDirectory.class);
+//        startActivity(intent);
     }
 }
