@@ -317,6 +317,7 @@ public class Shape {
 
     // sets script ivar but also parses script
     public void setScript(String script) {
+        commands.clear();
         this.script = script;
         this.commands = parseScript(script);
     }
@@ -345,12 +346,10 @@ public class Shape {
     public void setVisible(boolean val) { isVisible = val; }
 
     public void setX(float x) {
-        if (!isMovable) return;
         this.x = x;
     }
 
     public void setY(float y) {
-        if (!isMovable) return;
         this.y = y;
     }
 

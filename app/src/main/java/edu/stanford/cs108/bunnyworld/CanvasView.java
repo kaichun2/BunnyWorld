@@ -12,7 +12,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -74,7 +76,7 @@ public class CanvasView extends View {
 
                     createShape(resource, xDown, yDown);
 
-                } else if (selectedResource == -1) {
+                } else {
                     selectShape(xDown, yDown);
                 }
 
@@ -114,6 +116,15 @@ public class CanvasView extends View {
 
         GameEditor.setSelectedShaped(selectedShape);
 
+        TextView objName = ((GameEditor)getContext()).findViewById(R.id.obj_name);
+        objName.setText(pageShapes.get(selectedShape).getName());
+
+        LinearLayout objProperties = ((GameEditor)getContext()).findViewById(R.id.obj_properties);
+        objProperties.setVisibility(this.VISIBLE);
+
+        TextView clickObj = ((GameEditor)getContext()).findViewById(R.id.click_obj);
+        clickObj.setVisibility(this.GONE);
+
         selectedResource = -1;
 
     }
@@ -132,9 +143,24 @@ public class CanvasView extends View {
             if (xDown >= left && xDown <= right && yDown >= top && yDown <= bottom) {
                 selectedShape = i;
                 GameEditor.setSelectedShaped(i);
+                TextView objName = ((GameEditor)getContext()).findViewById(R.id.obj_name);
+                objName.setText(curr.getName());
+
+                LinearLayout objProperties = ((GameEditor)getContext()).findViewById(R.id.obj_properties);
+                objProperties.setVisibility(this.VISIBLE);
+
+                TextView clickObj = ((GameEditor)getContext()).findViewById(R.id.click_obj);
+                clickObj.setVisibility(this.GONE);
                 return;
             }
         }
+
+        LinearLayout objProperties = ((GameEditor)getContext()).findViewById(R.id.obj_properties);
+        objProperties.setVisibility(this.GONE);
+
+        TextView clickObj = ((GameEditor)getContext()).findViewById(R.id.click_obj);
+        clickObj.setVisibility(this.VISIBLE);
+
 
         selectedShape = -1;
 

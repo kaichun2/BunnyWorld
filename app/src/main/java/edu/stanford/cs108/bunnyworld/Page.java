@@ -98,6 +98,10 @@ public class Page {
         return pageID;
     }
 
+    public void setPageName(String name) {
+        this.pageName = name;
+    }
+
     public static void setPossessions(ArrayList<Shape> poss) { possessions = poss; }
 
     // Execute onEnter triggers for every shape on this page.
