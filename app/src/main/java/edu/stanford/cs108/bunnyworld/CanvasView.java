@@ -58,7 +58,8 @@ public class CanvasView extends View {
         for (int i = 0; i < pageShapes.size(); i++) {
             Shape curr = pageShapes.get(i);
             if (i == selectedShape) {
-                canvas.drawRect(curr.getX(), curr.getY(), curr.getX() + curr.getWidth(), curr.getY() + curr.getHeight(), blueOutlinePaint);
+                canvas.drawRect(curr.getX(), curr.getY(), curr.getX() + curr.getWidth(),
+                        curr.getY() + curr.getHeight(), blueOutlinePaint);
             }
             curr.draw(canvas);
         }

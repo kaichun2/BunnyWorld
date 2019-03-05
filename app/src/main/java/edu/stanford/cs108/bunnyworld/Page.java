@@ -54,6 +54,9 @@ public class Page {
     /* Feel free to use this when testing your code. */
     public static final String SAMPLE_DATA_FILE = "sampledatafile";
 
+    /* Bunny world file. */
+    public static final String BUNNY_WORLD_FILE = "bunnyworld";
+
     /* Text file where we will store the names of the games we have files for. */
     public static final String GAME_NAMES_FILE = "gamesnamesfile";
 
@@ -64,19 +67,14 @@ public class Page {
         allPages.add(this);
     }
 
-    /*
-     * Selecting the current page will call all of its shapes' on Enter functions
-     * and then call onDraw on each shape. Each shape should have a visible/invisible
-     * property already initially defined.
-     *
-     * Requires context, so pass "this" or "getContext()" (activity vs view)
-     *
-     * Requires canvas since we will need to call onDraws
-     */
-    public static void selectPage(Context context, Canvas canvas, Page page) {
-        page.onEnter(context, canvas); // shape on enter functions
-        page.drawAllShapes(canvas);
-    } // note: up to client implementing draw area view to call invalidate
+    // a default constructor -> don't add to allPages
+    // I will be using this as a "special" page/marker that lets
+    // me know when an invalid onDrop has been detected (see onMousePageEvent)
+    public Page() {
+        this.pageID = -1;
+        pageName = "";
+        shapes = null;
+    }
 
     @Override
     public String toString() {
@@ -101,26 +99,13 @@ public class Page {
         return pageID;
     }
 
+    public static ArrayList<Shape> getPossessions() { return possessions; }
+
     public void setPageName(String name) {
         this.pageName = name;
     }
 
     public static void setPossessions(ArrayList<Shape> poss) { possessions = poss; }
-
-    // Execute onEnter triggers for every shape on this page.
-    // page.onEnter(this, canvas)
-    public void onEnter(Context context, Canvas canvas) {
-        for (Shape shape : shapes) {
-            shape.onEnter(context, canvas);
-        }
-    }
-
-    // call all shapes on draw functions
-    public void drawAllShapes(Canvas canvas) {
-        for (Shape shape : shapes) {
-            shape.draw(canvas);
-        }
-    }
 
     /* Use this on a page to get the associated shapes, which you can then have draw themselves. */
     public ArrayList<Shape> getShapes() {
@@ -145,38 +130,43 @@ public class Page {
         If "on drop" is passed, client must be sure that there are at least two shapes at the specified
         x and y coordinates, and the two shapes on top are the ones being dealt with.
 
-        TODO: on drag functionality?
      */
-    public void onMousePageEvent(Context context, Canvas canvas, int x, int y, String event) {
+    public Page onMousePageEvent(Context context, float x, float y, String event) {
+        Page newPage = null;
         Shape topShape = getShape(x, y, 1);
-        if (topShape == null) return; // no shape, no action
+        if (topShape == null) return null; // no shape, no action
 
         if (event.equals("on click")) { // clicked top shape
-            topShape.onClick(context, canvas);
+            newPage = topShape.onClick(context);
         } else if (event.equals("on drop")) { // dropped top shape onto secondTopShape
             Shape secondTopShape = getShape(x, y, 2);
-            secondTopShape.onDrop(context, canvas, topShape); // execute "on drop topShape" script for secondTopShape
+            if (secondTopShape == null) return null; // don't do anything if there wasn't a second top shape!!!
+
+            // if there isn't an "on drop topShape" for secondTopShape, then we'll return
+            // a new, empty page with pageID = -1 to denote the "snap back to place" case in gameeditor
+            if (!secondTopShape.getCommands().containsKey("on drop " + topShape.getName())) {
+                return new Page();
+            }
+
+            newPage = secondTopShape.onDrop(context, topShape); // execute "on drop topShape" script for secondTopShape
         }
-
-
-        // otherwise, what to do for each event?
-        // onClick event
-        // onDrop (release the mouse)
-        // onDrag (dragging the shape should change x and y - call shape.setX and shape.setY
-
+        return newPage;
     }
 
     /* Gets the shape at (clickX, clickY). If lim=1, topmost. If lim=2, one below topmost, etc. */
-    private Shape getShape(int clickX, int clickY, int lim) {
+    // note that shapes near the end were added last so they're on top.
+    public Shape getShape(float clickX, float clickY, int lim) {
         Shape ret = null;
         int seen = 0;
-        for (int i = shapes.size() -1; i >= 0; i--) {
+        for (int i = shapes.size() - 1; i >= 0; i--) {
             Shape shape = shapes.get(i);
-            if ((shape.getX() <= clickX && clickX <= shape.getX() + shape.getWidth()) && // x is contained in shape
-                    (shape.getY() <= clickY && clickY <= shape.getY() + shape.getHeight())) { // y is also contained in shape
-                ret = shape;
-                seen++;
-                if (seen == lim) break;
+            if (shape.isVisible()) {
+                if ((shape.getX() <= clickX && clickX <= shape.getX() + shape.getWidth()) && // x is contained in shape
+                        (shape.getY() <= clickY && clickY <= shape.getY() + shape.getHeight())) { // y is also contained in shape
+                    ret = shape;
+                    seen++;
+                    if (seen == lim) break;
+                }
             }
         }
         if (seen != lim) return null; // exited for loop without finding expected shape (lim)
@@ -191,7 +181,8 @@ public class Page {
         Log.d("dog", "launching parse for pages");
 
         /* For testing purposes (allows sample database file in internal storage): */
-        if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadSampleDatabaseIntoInternalStorage(context);
+        if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadRawFileIntoInternalStorage(context, SAMPLE_DATA_FILE);
+        if (nameOfGame.equals(BUNNY_WORLD_FILE)) loadRawFileIntoInternalStorage(context, BUNNY_WORLD_FILE);
 
         String json = getDataFromFile(context, nameOfGame + ".json");
         loadDatabaseFromJSONString(context, json);
@@ -552,7 +543,7 @@ public class Page {
     }
 
 
-    /* Loading sample database into internal storage.
+    /* Loading res/raw files into internal storage.
     *
     * Purpose: We can't write to files in res/raw, so we can't maintain
     *       our database files in that location. So
@@ -562,24 +553,25 @@ public class Page {
     *       emulator will have its own local files), in order to get a sample
     *       database file into everyone's emulator, I am placing the sample file
     *       into res/raw and loading it into your emulator's internal storage
-    *       if you call loadDatabase().
+    *       if you call loadDatabase(). Likewise, we must do the same thing for
+    *       the canonical bunny world example.
     *
     *       This doesn't affect the functionality defined in specs. The sample
     *       file is just so y'all can test things! When you save to the database,
     *       it will be stored in your emulator phone's internal storage, so the
     *       data is persistent.
     * */
-    private static void loadSampleDatabaseIntoInternalStorage(Context context) {
-        String jsonString = getSampleDatabaseFile(context);
-        loadJSONStringIntoDatabase(context, SAMPLE_DATA_FILE, jsonString);
+    private static void loadRawFileIntoInternalStorage(Context context, String rawfilename) {
+        String jsonString = getRawFile(context, rawfilename);
+        loadJSONStringIntoDatabase(context, rawfilename, jsonString);
     }
 
     /* sampledatabase.json in res/raw folder. */
-    private static String getSampleDatabaseFile(Context context) {
+    private static String getRawFile(Context context, String rawfilename) {
         StringBuilder ret = new StringBuilder();
         try {
             InputStream in = context.getResources().openRawResource(
-                    context.getResources().getIdentifier(SAMPLE_DATA_FILE,
+                    context.getResources().getIdentifier(rawfilename,
                             "raw", context.getPackageName()));
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String line;
@@ -589,7 +581,7 @@ public class Page {
 
             in.close();
         } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + SAMPLE_DATA_FILE + " in getSampleDatabaseFile.");
+            Log.d("dog", "Error getting json data from file " + rawfilename + " in getSampleDatabaseFile.");
         }
         return ret.toString();
     }
