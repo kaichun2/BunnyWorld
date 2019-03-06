@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
+import android.util.Log;
 
 import org.json.simple.JSONObject;
 
@@ -36,6 +37,7 @@ public class Shape {
 
     /* Grey paint object (for when there's no image). */
     private Paint grayPaint = new Paint();
+    private Paint textPaint = new Paint();
 
     /* The following are more for internal use, but the client must supply a script string. */
     private HashMap<String, String> commands;
@@ -102,15 +104,16 @@ public class Shape {
     /*
      * draw function. Given a canvas, will draw itself on that canvas.
      */
-    public void draw(Canvas canvas) { // TODO: verify that this is how we want this to work (isMovable?)
+    public void draw(Canvas canvas) {
+        if (!isVisible) return; // if not visible, don't draw
+
+
         // text obj takes precedence in basic design
         // in the basic functionality cases, the x and y of shapeText will match the associated shape
         if (textObj != null && !textObj.text.isEmpty()) {
             textObj.draw(canvas);
             return;
         }
-
-        if (!isVisible) return; // if not visible, don't draw
 
         // choose bitmap image based on imgName
         if (imgName.isEmpty()) {
@@ -166,33 +169,36 @@ public class Shape {
 
 
     /* Any on click functionality, if defined. shape1.onClick(this) */
-    public void onClick(Context context, Canvas canvas) {
+    public Page onClick(Context context) {
+        Page newPage = null;
         String commandScript = commands.get("on click");
         if (commandScript != null) { // if on click script defined
-            executeCommandScript(context, canvas, commandScript);
+            newPage = executeCommandScript(context, commandScript);
         }
+        return newPage;
     }
 
     /* Any on enter functionality, if defined. shape1.onEnter(this) */
-    public void onEnter(Context context, Canvas canvas) {
+    public Page onEnter(Context context) {
+        Page newPage = null;
         String commandScript = commands.get("on enter");
         if (commandScript != null) { // if on enter script defined
-            executeCommandScript(context, canvas, commandScript);
-
+            newPage = executeCommandScript(context, commandScript);
         }
-
+        return newPage;
     }
 
     /*
     * Functionality for when a specific shape is dropped on this shape.
     * shape1.onDrop(this, shape2)
     */
-    public void onDrop(Context context, Canvas canvas, Shape shape) {
+    public Page onDrop(Context context, Shape shape) {
+        Page newPage = null;
         String commandScript = commands.get("on drop " + shape.name);
         if (commandScript != null) { // if on drop shape.name defined
-            executeCommandScript(context, canvas, commandScript);
-
+            newPage = executeCommandScript(context, commandScript);
         }
+        return newPage;
     }
 
     /* Giving a command script, executes whatever it says.
@@ -214,8 +220,9 @@ public class Shape {
      *       If you are in an activity, you can supply this with keyword
      *       "this" in most cases. Also need a canvas for "goto" option.
      */
-    private void executeCommandScript(Context context, Canvas canvas, String commandScript) {
+    private Page executeCommandScript(Context context, String commandScript) {
         String[] comp = commandScript.split(" ");
+        Page newPage = null;
 
         // -go through each component and execute based on current action
         // -robust enough approach so that we can have scripts of form:
@@ -225,10 +232,11 @@ public class Shape {
             if (validActions.contains(curr)) {
                 currAction = curr;
             } else if (currAction.equals("goto")) {
+                Log.d("wtf", curr);
                 ArrayList<Page> pages = Page.getPages();
                 for (Page page : pages) {
                     if (page.getPageName().equals(curr)) {
-                        Page.selectPage(context, canvas, page);
+                        newPage = page;
                         break;
                     }
                 }
@@ -240,6 +248,7 @@ public class Shape {
                 makeShapeVisible(curr, true); // show shape curr
             }
         }
+        return newPage;
     }
 
     /* Plays media file when given name of mp3 file in res/raw. */
@@ -263,6 +272,7 @@ public class Shape {
         for (Shape shape : allShapes) {
             if (shape.name.equals(shapeName)) {
                 shape.setVisible(visible);
+                break;
             }
         }
 
@@ -312,6 +322,8 @@ public class Shape {
     public String getText() { return textObj.getText(); }
 
     public String getScript() { return script; }
+
+    public HashMap<String, String> getCommands() { return commands; }
 
     public static ArrayList<Shape> getAllShapes() { return allShapes; }
 
@@ -386,7 +398,7 @@ public class Shape {
      * coordinates be locked to directly above the image, similar to how RPG games lock
      * a name text over a character.
      */
-    public class ShapeText { // TODO: verify draw works, extra: maybe ivar for text color?
+    public class ShapeText { // TODO: extra: maybe ivar for text color?
         private float xLoc, yLoc;
         private int fontSize; // sp
         private String text;
@@ -403,16 +415,20 @@ public class Shape {
         public ShapeText(String text) {
             xLoc = x;
             yLoc = y;
-            fontSize = 12;
+            fontSize = 36;
             this.text = text;
         }
 
+        // text also only draws itself if outer object is visible
         public void draw(Canvas canvas) {
-            Paint paint = new Paint();
-            canvas.drawPaint(paint);
-            paint.setTextSize(fontSize);
-            paint.setColor(Color.BLACK);
-            canvas.drawText(text, x, y, paint);
+            if (isVisible) {
+                textPaint.setColor(Color.WHITE);
+                textPaint.setStyle(Paint.Style.FILL);
+
+                textPaint.setColor(Color.BLACK);
+                textPaint.setTextSize(fontSize);
+                canvas.drawText(text, xLoc, yLoc, textPaint);
+            }
         }
 
         @Override

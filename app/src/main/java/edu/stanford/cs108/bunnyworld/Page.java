@@ -54,6 +54,12 @@ public class Page {
     /* Feel free to use this when testing your code. */
     public static final String SAMPLE_DATA_FILE = "sampledatafile";
 
+    /* Bunny world file. */
+    public static final String BUNNY_WORLD_FILE = "bunnyworld";
+
+    /* Text file where we will store the names of the games we have files for. */
+    public static final String GAME_NAMES_FILE = "gamesnamesfile";
+
     public Page(String pageName, int pageID, ArrayList<Shape> shapes) {
         this.pageName = pageName;
         this.pageID = pageID;
@@ -61,19 +67,14 @@ public class Page {
         allPages.add(this);
     }
 
-    /*
-     * Selecting the current page will call all of its shapes' on Enter functions
-     * and then call onDraw on each shape. Each shape should have a visible/invisible
-     * property already initially defined.
-     *
-     * Requires context, so pass "this" or "getContext()" (activity vs view)
-     *
-     * Requires canvas since we will need to call onDraws
-     */
-    public static void selectPage(Context context, Canvas canvas, Page page) {
-        page.onEnter(context, canvas); // shape on enter functions
-        page.drawAllShapes(canvas);
-    } // note: up to client implementing draw area view to call invalidate
+    // a default constructor -> don't add to allPages
+    // I will be using this as a "special" page/marker that lets
+    // me know when an invalid onDrop has been detected (see onMousePageEvent)
+    public Page() {
+        this.pageID = -1;
+        pageName = "";
+        shapes = null;
+    }
 
     @Override
     public String toString() {
@@ -98,26 +99,13 @@ public class Page {
         return pageID;
     }
 
+    public static ArrayList<Shape> getPossessions() { return possessions; }
+
     public void setPageName(String name) {
         this.pageName = name;
     }
 
     public static void setPossessions(ArrayList<Shape> poss) { possessions = poss; }
-
-    // Execute onEnter triggers for every shape on this page.
-    // page.onEnter(this, canvas)
-    public void onEnter(Context context, Canvas canvas) {
-        for (Shape shape : shapes) {
-            shape.onEnter(context, canvas);
-        }
-    }
-
-    // call all shapes on draw functions
-    public void drawAllShapes(Canvas canvas) {
-        for (Shape shape : shapes) {
-            shape.draw(canvas);
-        }
-    }
 
     /* Use this on a page to get the associated shapes, which you can then have draw themselves. */
     public ArrayList<Shape> getShapes() {
@@ -142,38 +130,43 @@ public class Page {
         If "on drop" is passed, client must be sure that there are at least two shapes at the specified
         x and y coordinates, and the two shapes on top are the ones being dealt with.
 
-        TODO: on drag functionality?
      */
-    public void onMousePageEvent(Context context, Canvas canvas, int x, int y, String event) {
+    public Page onMousePageEvent(Context context, float x, float y, String event) {
+        Page newPage = null;
         Shape topShape = getShape(x, y, 1);
-        if (topShape == null) return; // no shape, no action
+        if (topShape == null) return null; // no shape, no action
 
         if (event.equals("on click")) { // clicked top shape
-            topShape.onClick(context, canvas);
+            newPage = topShape.onClick(context);
         } else if (event.equals("on drop")) { // dropped top shape onto secondTopShape
             Shape secondTopShape = getShape(x, y, 2);
-            secondTopShape.onDrop(context, canvas, topShape); // execute "on drop topShape" script for secondTopShape
+            if (secondTopShape == null) return null; // don't do anything if there wasn't a second top shape!!!
+
+            // if there isn't an "on drop topShape" for secondTopShape, then we'll return
+            // a new, empty page with pageID = -1 to denote the "snap back to place" case in gameeditor
+            if (!secondTopShape.getCommands().containsKey("on drop " + topShape.getName())) {
+                return new Page();
+            }
+
+            newPage = secondTopShape.onDrop(context, topShape); // execute "on drop topShape" script for secondTopShape
         }
-
-
-        // otherwise, what to do for each event?
-        // onClick event
-        // onDrop (release the mouse)
-        // onDrag (dragging the shape should change x and y - call shape.setX and shape.setY
-
+        return newPage;
     }
 
     /* Gets the shape at (clickX, clickY). If lim=1, topmost. If lim=2, one below topmost, etc. */
-    private Shape getShape(int clickX, int clickY, int lim) {
+    // note that shapes near the end were added last so they're on top.
+    public Shape getShape(float clickX, float clickY, int lim) {
         Shape ret = null;
         int seen = 0;
-        for (int i = shapes.size() -1; i >= 0; i--) {
+        for (int i = shapes.size() - 1; i >= 0; i--) {
             Shape shape = shapes.get(i);
-            if ((shape.getX() <= clickX && clickX <= shape.getX() + shape.getWidth()) && // x is contained in shape
-                    (shape.getY() <= clickY && clickY <= shape.getY() + shape.getHeight())) { // y is also contained in shape
-                ret = shape;
-                seen++;
-                if (seen == lim) break;
+            if (shape.isVisible()) {
+                if ((shape.getX() <= clickX && clickX <= shape.getX() + shape.getWidth()) && // x is contained in shape
+                        (shape.getY() <= clickY && clickY <= shape.getY() + shape.getHeight())) { // y is also contained in shape
+                    ret = shape;
+                    seen++;
+                    if (seen == lim) break;
+                }
             }
         }
         if (seen != lim) return null; // exited for loop without finding expected shape (lim)
@@ -188,9 +181,10 @@ public class Page {
         Log.d("dog", "launching parse for pages");
 
         /* For testing purposes (allows sample database file in internal storage): */
-        if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadSampleDatabaseIntoInternalStorage(context);
+        if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadRawFileIntoInternalStorage(context, SAMPLE_DATA_FILE);
+        if (nameOfGame.equals(BUNNY_WORLD_FILE)) loadRawFileIntoInternalStorage(context, BUNNY_WORLD_FILE);
 
-        String json = getJSONDataFromFile(context, nameOfGame + ".json");
+        String json = getDataFromFile(context, nameOfGame + ".json");
         loadDatabaseFromJSONString(context, json);
     }
 
@@ -217,7 +211,6 @@ public class Page {
             Shape.initDrawables(context); // need context in order to read res/raw
 
         } catch(Exception ex) {
-            System.out.println("Error parsing database file.");
             Log.d("dog", "file reading failed");
             ex.printStackTrace();
         }
@@ -228,7 +221,7 @@ public class Page {
     }
 
     // file is in internal storage
-    private static String getJSONDataFromFile(Context context, String filename) {
+    private static String getDataFromFile(Context context, String filename) {
         StringBuilder ret = new StringBuilder();
         try {
 
@@ -247,7 +240,7 @@ public class Page {
             in.close();
 
         } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + filename + " in getJSONDataFromFile.");
+            Log.d("dog", "Error getting json data from file " + filename + " in getDataFromFile.");
         }
         return ret.toString();
     }
@@ -388,7 +381,7 @@ public class Page {
     private static void loadJSONStringIntoDatabase(Context context, String game, String jsonString) {
         try {
             String filename = game + ".json";
-            if (!fileExists(context, game)) { // create file
+            if (!fileExists(context, filename)) { // create file
                 new File(context.getFilesDir(), filename);
             }
 
@@ -396,11 +389,133 @@ public class Page {
             out.write(jsonString.getBytes());
             out.close();
 
+            updateListOfGames(context, game);
+
         } catch (Exception ex) {
             ex.printStackTrace();
             Log.d("error", "failed to write to internal storage database");
         }
     }
+
+    /*
+    We will be keeping a .txt file on the internal storage that contains
+    the names of the games, separated by new line characters.
+     */
+    private static void updateListOfGames(Context context, String game) {
+        String filename = GAME_NAMES_FILE + ".txt";
+        try {
+            if (!fileExists(context, filename)) {
+                new File(context.getFilesDir(), filename);
+            }
+
+            String fileText = getDataFromFile(context, filename);
+            String[] games = fileText.split(" ");
+
+            boolean isInFile = false;   // is game already in file?
+            for (String gameInFile : games) {
+                if (gameInFile.equals(game)) {
+                    isInFile = true;
+                    break;
+                }
+            }
+
+            if (!isInFile) { // if game isn't already in file then we should add it
+                if (!fileText.isEmpty()) {
+                    fileText += " " + game; // if not empty, new line comes before
+                } else {
+                    fileText += game; // if empty, just add game itself
+                }
+            }
+
+            FileOutputStream out = context.openFileOutput(filename, MODE_PRIVATE);
+            out.write(fileText.getBytes());
+            out.close();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "error when writing to internal storage - update list of games");
+        }
+    }
+
+    /* Returns an arraylist of all the games we have data files for. */
+    public static ArrayList<String> getGames(Context context) {
+        ArrayList<String> games = new ArrayList<>();
+        try {
+            String fileText = getDataFromFile(context, GAME_NAMES_FILE + ".txt");
+
+            String[] fileGames = fileText.split(" ");
+            for (String game : fileGames) {
+                games.add(game);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "error when getting games from gamesnamefile.txt");
+        }
+        return games;
+    }
+
+    /* Reset/delete the entire database. Empties game_names file. */
+    public static void deleteAllGames(Context context) {
+        ArrayList<String> gamesToDelete = Page.getGames(context);
+
+        for (String game : gamesToDelete) {
+            deleteGameFromDatabase(context, game);
+        }
+
+        /* Empty the game_names file. */
+        try {
+            FileOutputStream out = context.openFileOutput(GAME_NAMES_FILE + ".txt", MODE_PRIVATE);
+            out.write("".getBytes());
+            out.close();
+        } catch (Exception ex) {
+            Log.d("error" , "error when trying to delete database.");
+        }
+
+    }
+
+    /* Deletes specified game's file in database and update game_names file. */
+    /* Files should be json (as they are normally stored).*/
+    public static void deleteGame(Context context, String game) {
+        deleteGameFromDatabase(context, game);
+
+        // update game names file
+        ArrayList<String> games = Page.getGames(context);
+        StringBuilder updatedGames = new StringBuilder();
+
+        for (int i = 0; i < games.size(); i++) {
+            String chosenGame = games.get(i);
+            if (!chosenGame.equals(game)) {
+                if (i > 0) updatedGames.append(" "); // first element won't have a space
+                updatedGames.append(chosenGame);
+            }
+        }
+
+        try {
+            FileOutputStream out = context.openFileOutput(GAME_NAMES_FILE + ".txt", MODE_PRIVATE);
+            out.write(updatedGames.toString().getBytes());
+            out.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d("error", "error when attempting to delete game from game names file.");
+        }
+    }
+
+    /*
+     * This particular function will only delete the game from
+     * the database as opposed to also deleting it from the game_names
+     * file. Used internally. It's just fod decomposition.
+     */
+    private static void deleteGameFromDatabase(Context context, String game) {
+        File fileToDelete = new File(context.getFilesDir(), game + ".json");
+        fileToDelete.delete();
+    }
+
+    /*
+    Delete the specified game in the database.
+    (Does nothing if game doesn't exist)
+    Removes that particular game from game_names file.
+    */
 
     public static String prettyPrintJSON(Object jsonObj) {
         /* return pretty print version of json str. */
@@ -428,7 +543,7 @@ public class Page {
     }
 
 
-    /* Loading sample database into internal storage.
+    /* Loading res/raw files into internal storage.
     *
     * Purpose: We can't write to files in res/raw, so we can't maintain
     *       our database files in that location. So
@@ -438,24 +553,25 @@ public class Page {
     *       emulator will have its own local files), in order to get a sample
     *       database file into everyone's emulator, I am placing the sample file
     *       into res/raw and loading it into your emulator's internal storage
-    *       if you call loadDatabase().
+    *       if you call loadDatabase(). Likewise, we must do the same thing for
+    *       the canonical bunny world example.
     *
     *       This doesn't affect the functionality defined in specs. The sample
     *       file is just so y'all can test things! When you save to the database,
     *       it will be stored in your emulator phone's internal storage, so the
     *       data is persistent.
     * */
-    private static void loadSampleDatabaseIntoInternalStorage(Context context) {
-        String jsonString = getSampleDatabaseFile(context);
-        loadJSONStringIntoDatabase(context, SAMPLE_DATA_FILE, jsonString);
+    private static void loadRawFileIntoInternalStorage(Context context, String rawfilename) {
+        String jsonString = getRawFile(context, rawfilename);
+        loadJSONStringIntoDatabase(context, rawfilename, jsonString);
     }
 
     /* sampledatabase.json in res/raw folder. */
-    private static String getSampleDatabaseFile(Context context) {
+    private static String getRawFile(Context context, String rawfilename) {
         StringBuilder ret = new StringBuilder();
         try {
             InputStream in = context.getResources().openRawResource(
-                    context.getResources().getIdentifier(SAMPLE_DATA_FILE,
+                    context.getResources().getIdentifier(rawfilename,
                             "raw", context.getPackageName()));
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String line;
@@ -465,28 +581,53 @@ public class Page {
 
             in.close();
         } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + SAMPLE_DATA_FILE + " in getJSONDataFromFile.");
+            Log.d("dog", "Error getting json data from file " + rawfilename + " in getSampleDatabaseFile.");
         }
         return ret.toString();
     }
 
     public static void test(Context context) {
-        Page.loadDatabase(context,SAMPLE_DATA_FILE);
-        ArrayList<Page> pages = Page.getPages();
-        String string1 = "";
-        for (Page page : pages) {
-            string1 += page.toString();
-            string1 += page.getPageJSON();
-        }
-
-        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE);
-
-        String string2 = "";
-        for (Page page : pages) {
-            string2 += page.toString();
-            string2 += page.getPageJSON();
-        }
-
-        Log.d("dog2", string1.equals(string2) ? "OKAY" : "NOPE");
+//        Page.loadDatabase(context, SAMPLE_DATA_FILE);
+//        ArrayList<Page> pages = Page.getPages();
+//        String string1 = "";
+//        for (Page page : pages) {
+//            string1 += page.toString();
+//            string1 += page.getPageJSON();
+//        }
+//
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE);
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "1");
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "2");
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "3");
+//        loadIntoDatabaseFile(context, SAMPLE_DATA_FILE + "4");
+//
+//
+//        String string2 = "";
+//        for (Page page : pages) {
+//            string2 += page.toString();
+//            string2 += page.getPageJSON();
+//        }
+//
+//        Log.d("dog2", string1.equals(string2) ? "OKAY" : "NOPE");
+//
+//
+//        ArrayList<String> games = Page.getGames(context);
+//        for (String game: games) {
+//            Log.d("waddup", game);
+//        }
+//
+//        for (String game : games) {
+//            deleteGame(context, game);
+//        }
+//
+//        deleteAllGames(context);
+//
+//        deleteGame(context, "nonexistent");
+//
+//        ArrayList<String> games2 = Page.getGames(context);
+//        Log.d("waddup", "starting games2");
+//        for (String game1: games2) {
+//            Log.d("waddup", game1);
+//        }
     }
 }
