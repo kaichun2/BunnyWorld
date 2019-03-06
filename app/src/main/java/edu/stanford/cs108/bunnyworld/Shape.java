@@ -331,6 +331,7 @@ public class Shape {
     public void setScript(String script) {
         commands.clear();
         this.script = script;
+
         this.commands = parseScript(script);
     }
 

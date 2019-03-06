@@ -180,9 +180,11 @@ public class Page {
     public static void loadDatabase(Context context, String nameOfGame) {
         Log.d("dog", "launching parse for pages");
 
-        /* For testing purposes (allows sample database file in internal storage): */
-        if (nameOfGame.equals(SAMPLE_DATA_FILE)) loadRawFileIntoInternalStorage(context, SAMPLE_DATA_FILE);
-        if (nameOfGame.equals(BUNNY_WORLD_FILE)) loadRawFileIntoInternalStorage(context, BUNNY_WORLD_FILE);
+        // what we load from database should be the only thing in allShapes /
+        // possessions / allPages. so reset it before loading
+        allPages.clear();
+        possessions.clear();
+        Shape.getAllShapes().clear();
 
         String json = getDataFromFile(context, nameOfGame + ".json");
         loadDatabaseFromJSONString(context, json);
@@ -561,7 +563,7 @@ public class Page {
     *       it will be stored in your emulator phone's internal storage, so the
     *       data is persistent.
     * */
-    private static void loadRawFileIntoInternalStorage(Context context, String rawfilename) {
+    public static void loadRawFileIntoInternalStorage(Context context, String rawfilename) {
         String jsonString = getRawFile(context, rawfilename);
         loadJSONStringIntoDatabase(context, rawfilename, jsonString);
     }
