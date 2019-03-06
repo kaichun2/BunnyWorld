@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.GridLayout;
 import java.util.ArrayList;
+import android.content.Intent;
 
 public class PageDirectory extends AppCompatActivity {
 
@@ -21,6 +22,13 @@ public class PageDirectory extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_page_directory);
+
+        Page.loadDatabase(this, "sampledatafile");
+        ArrayList<Page> pages = Page.getPages();
+        numPages = pages.size();
+        for (Page p : pages) {
+            drawPage(p.getPageName());
+        }
     }
 
     public void addPage(View view) {
@@ -58,18 +66,16 @@ public class PageDirectory extends AppCompatActivity {
     }
 
     private void drawPage(String name) {
-        Page.loadDatabase(this, "sampledatafile");
-        ArrayList<Page> pages = Page.getPages();
-
-
-        RelativeLayout layout = (RelativeLayout) findViewById(R.id.layout);
-        GridLayout lin = new GridLayout(PageDirectory.this);
-        layout.addView(lin);
-        Button newPage = new Button(PageDirectory.this);
-        newPage.setText(name);
-        lin.addView(newPage);
-
-
+        LinearLayout ll = findViewById(R.id.buttonlayout);
+        Button nextPg = new Button(PageDirectory.this);
+        nextPg.setText(name);
+        nextPg.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(PageDirectory.this, GameEditor.class);
+                startActivity(intent);
+            }
+        });
+        ll.addView(nextPg);
     }
 
 }
