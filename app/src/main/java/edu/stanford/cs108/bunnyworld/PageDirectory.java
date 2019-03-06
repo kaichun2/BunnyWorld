@@ -2,6 +2,7 @@ package edu.stanford.cs108.bunnyworld;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,11 +24,22 @@ public class PageDirectory extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_page_directory);
 
-        Page.loadDatabase(this, "sampledatafile");
-        ArrayList<Page> pages = Page.getPages();
-        numPages = pages.size();
-        for (Page p : pages) {
-            drawPage(p.getPageName());
+        Bundle extras = getIntent().getExtras();
+        String game = extras.getString(MainActivity.GAME_EXTRA);
+        boolean isCreate = extras.getBoolean(MainActivity.IS_CREATE);
+
+
+        if (!isCreate) { // edit, load it
+            Page.loadDatabase(this, game);
+            ArrayList<Page> pages = Page.getPages();
+            numPages = pages.size();
+            for (Page p : pages) {
+                drawPage(p.getPageName());
+            }
+        } else {
+            // by specs, we need a page1 already loaded in
+            Page page1 = new Page("page1", 1, new ArrayList<Shape>());
+            drawPage(page1.getPageName());
         }
     }
 

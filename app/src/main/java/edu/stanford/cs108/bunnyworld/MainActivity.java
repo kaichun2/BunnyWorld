@@ -7,6 +7,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.widget.*;
 import android.view.View;
 
@@ -18,6 +19,8 @@ public class MainActivity extends AppCompatActivity {
     private String[] games; // all the games
 
     public static final String GAME_EXTRA = "game";
+    public static final String IS_CREATE = "is_create";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +38,13 @@ public class MainActivity extends AppCompatActivity {
     // into internal storage, Patrick Young approved)
     // only loading bunny world file
     private void putRawFilesIntoInternalAndroidStorage() {
-         Page.loadDatabase(this, Page.BUNNY_WORLD_FILE);
+        Page.loadRawFileIntoInternalStorage(this, Page.SAMPLE_DATA_FILE);
+        Page.loadRawFileIntoInternalStorage(this, Page.BUNNY_WORLD_FILE);
+
+        // reset page, shape, and possessions arrays so it doesn't mess with anything
+        Page.getPages().clear();
+        Shape.getAllShapes().clear();
+        Page.getPossessions().clear();
     }
 
 
@@ -105,18 +114,28 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: (to page 2)
-                        // validate that it is a unique game name
-                        // verify that there are no spaces
-                        // restrict so that it can't equal gamenamesfile
                         EditText newGameName = ((AlertDialog) createGame).findViewById(R.id.editable_page_name);
+                        String newGame = newGameName.getText().toString();
 
-                        // pass intent
-                        Intent pageDirectoryIntent = new Intent(getApplicationContext(), PageDirectory.class);
-                        pageDirectoryIntent.putExtra(GAME_EXTRA, newGameName.getText().toString());
-                        startActivity(pageDirectoryIntent);
+                        // pass intent if valid
+                        if (!newGame.equals(Page.GAME_NAMES_FILE) && !hasElem(newGame)) {
+                            Intent pageDirectoryIntent = new Intent(getApplicationContext(), PageDirectory.class);
+                            pageDirectoryIntent.putExtra(GAME_EXTRA, newGame);
+                            pageDirectoryIntent.putExtra(IS_CREATE, true);
+                            startActivity(pageDirectoryIntent);
+                            createGame.dismiss();
+                        } else {
 
-                        createGame.dismiss();
+                            // TODO - TASSICA - make this show up, edit stuff in xml file
+
+                            // error handling
+                            if (newGame.equals(Page.GAME_NAMES_FILE)) {
+                                createGame.setMessage("Please choose a different game name.");
+                            } else {
+                                createGame.setMessage("Game with that name already exists.");
+                            }
+                        }
+
                     }
                 });
 
@@ -132,6 +151,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         createGame.show();
+    }
+
+    private boolean hasElem(String game) {
+        for (String curr : games) {
+            if (curr.equals(game)) return true;
+        }
+        return false;
     }
 
     public void selectEditGame(View view) { // goes to page 2
@@ -166,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
                         // pass intent to go to new activity
                         Intent gameActivityIntent = new Intent(getApplicationContext(), PageDirectory.class);
                         gameActivityIntent.putExtra(GAME_EXTRA, checkedItem.toString());
+                        gameActivityIntent.putExtra(IS_CREATE, false);
                         startActivity(gameActivityIntent);
 
                         editGame.dismiss();
