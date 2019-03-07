@@ -4,29 +4,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".PageDirectory">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+"
-        android:textSize="40sp"
-        android:onClick="addPage"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_margin="15dp"
-        android:textColor="#eaeaea"
-        android:id="@+id/createButton"/>
-
-    <ScrollView
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/game_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        >
+
+        <GridView
+            android:id="@+id/page_grid"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/buttonlayout">
+            android:numColumns="3"
+            android:verticalSpacing="50dp"
+            android:horizontalSpacing="50dp"
+            android:layout_marginStart="70dp"
+            android:layout_marginBottom="50dp"
+            android:layout_marginTop="50dp"
+            />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/add_page"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:src="@drawable/ic_add_black_24dp" />
 
     </LinearLayout>
-    </ScrollView>
+
+
+
 </LinearLayout>

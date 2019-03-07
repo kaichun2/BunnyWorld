@@ -11,7 +11,7 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity android:name=".GameActivity"></activity>
         <activity android:name=".PageDirectory" />
-        <activity android:name="GameEditor" />
+        <activity android:name=".GameEditor" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

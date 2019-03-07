@@ -7,7 +7,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import android.util.Log;
 import android.widget.*;
 import android.view.View;
 
@@ -99,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
     public void createGame(View view) { // goes to page 2
         final AlertDialog.Builder createGameDialog = new AlertDialog.Builder(MainActivity.this);
         createGameDialog.setTitle("Enter game name:");
-        createGameDialog.setView(R.layout.page_name_editor);
+        createGameDialog.setView(R.layout.name_editor);
 
         createGameDialog.setPositiveButton("Ok", null);
         createGameDialog.setNegativeButton("Cancel", null);

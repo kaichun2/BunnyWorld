@@ -1,42 +1,28 @@
 package edu.stanford.cs108.bunnyworld;
 
-import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipDescription;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
-import android.widget.HorizontalScrollView;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,15 +50,12 @@ public class GameEditor extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
-
-        Intent intent = getIntent();
-
         // pass page ID
-        int pageID = intent.getIntExtra("PAGE ID", 0);
-        Page.loadDatabase(this, "sampledatafile");
+        Bundle extras = getIntent().getExtras();
+
+        int pageID = extras.getInt(PageDirectory.PAGE_ID);
         ArrayList<Page> allPages = Page.getPages();
-//         currPage = allPages.get(pageID - 1);
-        currPage = allPages.get(0);
+        currPage = allPages.get(pageID - 1);
 
         // TO DO: Set to page name
         getSupportActionBar().setTitle(currPage.getPageName());
@@ -664,7 +647,8 @@ public class GameEditor extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         // TO DO: delete object
-                        // remove from the arraylist
+                        // remove from the arraylist\
+                        onBackPressed();
                         delete.dismiss();
                     }
                 });
@@ -710,7 +694,7 @@ public class GameEditor extends AppCompatActivity {
     public void editPageName(MenuItem item) {
         final AlertDialog.Builder pageNameDialog = new AlertDialog.Builder(GameEditor.this);
         pageNameDialog.setTitle("Enter new page name:");
-        pageNameDialog.setView(R.layout.page_name_editor);
+        pageNameDialog.setView(R.layout.name_editor);
 
         pageNameDialog.setPositiveButton("Ok", null);
         pageNameDialog.setNegativeButton("Cancel", null);
@@ -734,7 +718,6 @@ public class GameEditor extends AppCompatActivity {
 
 
                         getSupportActionBar().setTitle(currPage.getPageName());
-
 
                         pageName.dismiss();
                     }
