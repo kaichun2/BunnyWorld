@@ -43,6 +43,11 @@ public class PageDirectory extends AppCompatActivity {
             Page.loadDatabase(this, game);
             drawPages();
         } else {
+            // reset data from any previous things we've done, create game should be fresh
+            Page.getPages().clear();
+            Page.getPossessions().clear();
+            Shape.getAllShapes().clear();
+
             // by specs, we need a page1 already loaded in
             Page page1 = new Page("page1", 1, new ArrayList<Shape>());
             drawPages();
