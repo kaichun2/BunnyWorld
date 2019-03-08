@@ -114,19 +114,8 @@
                             android:src="@drawable/ic_edit_black_24dp"
                             android:background="?android:attr/selectableItemBackground"
                             android:layout_marginLeft="5dp"
-                            android:layout_toLeftOf="@id/save_obj"
-                            android:onClick="editObjectName"
-                            />
-
-                        <ImageButton
-                            android:id="@+id/save_obj"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/ic_save_black_24dp"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:layout_marginLeft="5dp"
                             android:layout_toLeftOf="@id/delete_obj"
-                            android:onClick="saveObject"
+                            android:onClick="editObjectName"
                             />
 
                         <ImageButton
@@ -151,6 +140,16 @@
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:onClick="showScript"
+                        />
+
+                    <Button
+                        android:id="@+id/reset_script"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/reset_script"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:onClick="resetScript"
                         />
 
 
