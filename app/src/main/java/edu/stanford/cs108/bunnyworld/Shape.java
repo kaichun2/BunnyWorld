@@ -51,6 +51,7 @@ public class Shape {
     private static HashMap<String, BitmapDrawable> drawables = new HashMap<>();
     private static BitmapDrawable carrotDrawable, carrot2Drawable, deathDrawable;
     private static BitmapDrawable duckDrawable, fireDrawable, mysticDrawable;
+    private static BitmapDrawable texticonDrawable;
 
 
     public Shape(String name, float x, float y, float width, float height, String script,
@@ -86,6 +87,7 @@ public class Shape {
         duckDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.duck);
         fireDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.fire);
         mysticDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.mystic);
+        texticonDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.texticon);
 
         // initialize drawables hashmap so we can access them by imgName
         drawables.put("carrot", carrotDrawable);
@@ -94,6 +96,7 @@ public class Shape {
         drawables.put("duck", duckDrawable);
         drawables.put("fire", fireDrawable);
         drawables.put("mystic", mysticDrawable);
+        drawables.put("texticon", texticonDrawable);
     }
 
     public static HashMap<String, BitmapDrawable> getDrawables(Context context) {

@@ -18,4 +18,7 @@
     <string name="play_game">Play Game</string>
     <string name="create_game">Create Game</string>
     <string name="edit_game">Edit Game</string>
+    <string name="default_text_message">Enter text here</string>
+    <string name="shape">shape</string>
+    <string name="text">Text:</string>
 </resources>
