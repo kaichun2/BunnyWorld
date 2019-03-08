@@ -1,6 +1,7 @@
 package edu.stanford.cs108.bunnyworld;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -127,7 +128,7 @@ public class CanvasView extends View {
         resource.setBackgroundColor(getResources().getColor(R.color.light_grey));
 
         Shape newShape = new Shape();
-        newShape.setName("shape" + numShapes);
+        newShape.setName(getResources().getString(R.string.shape) + numShapes);
         numShapes++;
 
         int width = resource.getWidth();
@@ -141,7 +142,18 @@ public class CanvasView extends View {
 
         newShape.setPageID(GameEditor.getCurrPage().getPageID());
 
-        newShape.setImgName(resource.getTag().toString());
+        // imgName is decided by whether or not it's a texicon image
+        // we will have a text property available iff it's a texticon image
+        // TODO: tassica: make textLayout visible/not visible. unsure how to access from view
+        String imgName = resource.getTag().toString();
+//        LinearLayout textLayout = ((GameEditor)getContext()).findViewById(R.id.textLayout);
+        if (imgName.equals("texticon")) {
+            newShape.setShapeText(getResources().getString(R.string.default_text_message));
+//            textLayout.setVisibility(this.VISIBLE);
+        } else {
+            newShape.setImgName(resource.getTag().toString());
+//            textLayout.setVisibility(this.GONE);
+        }
 
         pageShapes.add(newShape);
 
