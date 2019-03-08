@@ -1,5 +1,8 @@
 package edu.stanford.cs108.bunnyworld;
 
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -78,6 +81,13 @@ public class PageDirectory extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        drawPages();
+    }
+
     public void addPage(View view) {
         showPopUp(PageDirectory.this);
     }
@@ -109,6 +119,11 @@ public class PageDirectory extends AppCompatActivity {
 
                         drawPages();
 
+                        Intent gameEditorIntent = new Intent(getApplicationContext(), GameEditor.class);
+                        gameEditorIntent.putExtra(PAGE_ID, newPage.getPageID());
+                        startActivity(gameEditorIntent);
+
+
                         pageName.dismiss();
                     }
                 });
@@ -134,6 +149,7 @@ public class PageDirectory extends AppCompatActivity {
 
         for (Page p : pages) {
             pageNames.add(p.getPageName());
+            System.out.println(p.getPageName());
         }
 
         ArrayAdapter<String> gridAdapter = new ArrayAdapter<String>
