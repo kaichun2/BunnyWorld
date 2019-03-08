@@ -9,18 +9,24 @@ import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleExpandableListAdapter;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -119,11 +125,86 @@ public class GameEditor extends AppCompatActivity {
         drawResources(resources);
 
         selectedResource = -1;
+
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_game_editor, menu);
+
+        MenuItem propertyItem = menu.findItem(R.id.right_panel_visibility);
+        Spinner propertiesSpinner = (Spinner) propertyItem.getActionView();
+
+        ArrayAdapter<CharSequence> propertiesAdapter = ArrayAdapter.createFromResource(this,
+                R.array.location_array, android.R.layout.simple_spinner_item);
+        propertiesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        propertiesSpinner.setAdapter(propertiesAdapter);
+
+//        MenuItem resourceItem = menu.findItem(R.id.resource_visibility);
+//        Spinner resourceSpinner = (Spinner) resourceItem.getActionView();
+//
+//        ArrayAdapter<CharSequence> resourceAdapter = ArrayAdapter.createFromResource(this,
+//                R.array.visibility_array, android.R.layout.simple_spinner_item);
+//        resourceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//
+//        resourceSpinner.setAdapter(resourceAdapter);
+
+        propertiesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+
+            public void onItemSelected(AdapterView adapterView, View view, int i, long l) {
+                String selected = adapterView.getSelectedItem().toString();
+                LinearLayout propertiesView = findViewById(R.id.right_panel);
+                FrameLayout entireEditor = findViewById(R.id.entire_editor);
+
+                if (selected.equals("Show Left")) {
+                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(225, FrameLayout.LayoutParams.MATCH_PARENT);
+                    params.gravity = Gravity.LEFT;
+                    propertiesView.setLayoutParams(params);
+                    propertiesView.setVisibility(view.VISIBLE);
+                } else if (selected.equals("Show Right")) {
+                    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(225, FrameLayout.LayoutParams.MATCH_PARENT);
+                    params.gravity = Gravity.RIGHT;
+                    propertiesView.setLayoutParams(params);
+                    propertiesView.setVisibility(view.VISIBLE);
+                } else if (selected.equals("Hide")) {
+                    propertiesView.setVisibility(view.GONE);
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView adapterView) {
+
+            }
+        });
+
+//        resourceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//
+//            @Override
+//
+//            public void onItemSelected(AdapterView adapterView, View view, int i, long l) {
+//
+//                String selected = adapterView.getSelectedItem().toString();
+//                HorizontalScrollView resourceView = findViewById(R.id.resource_panel);
+//
+//                if (selected.equals("Show")) {
+//                    resourceView.setVisibility(view.VISIBLE);
+//                } else if (selected.equals("Hide")) {
+//                    resourceView.setVisibility(view.GONE);
+//                }
+//
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView adapterView) {
+//
+//            }
+//        });
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -671,7 +752,18 @@ public class GameEditor extends AppCompatActivity {
                         // TO DO: delete object
                         // remove from the arraylist
                         // CHECK IF THERES ONLY ONE PAGE?
-                        Page.getPages().remove(currPage);
+                        ArrayList<Page> allPages = Page.getPages();
+                        int removed = allPages.indexOf(currPage);
+                        int removedID = currPage.getPageID();
+                        allPages.remove(currPage);
+
+                        for (int i = removed; i < allPages.size(); i++) {
+                            Page curr = allPages.get(i);
+                            curr.setPageID(removedID);
+
+                            removedID++;
+                        }
+
                         onBackPressed();
                         delete.dismiss();
                     }

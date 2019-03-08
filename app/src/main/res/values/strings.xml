@@ -27,4 +27,15 @@
     <string name="deletegameswarning">This will delete all the games currently in the database. Is that fine?</string>
     <string name="ok">OK</string>
     <string name="cancel">CANCEL</string>
+    <string name="properties_panel">Properties panel:</string>
+    <string name="resource_panel">Resource panel:</string>
+    <string-array name="location_array">
+        <item>Show Right</item>
+        <item>Show Left</item>
+        <item>Hide</item>
+    </string-array>
+    <string-array name="visibility_array">
+        <item>Show</item>
+        <item>Hide</item>
+    </string-array>
 </resources>

@@ -105,6 +105,10 @@ public class Page {
         this.pageName = name;
     }
 
+    public void setPageID(int id) {
+        this.pageID = id;
+    }
+
     public static void setPossessions(ArrayList<Shape> poss) { possessions = poss; }
 
     /* Use this on a page to get the associated shapes, which you can then have draw themselves. */
