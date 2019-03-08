@@ -506,11 +506,13 @@ public class Page {
         ArrayList<String> games = Page.getGames(context);
         StringBuilder updatedGames = new StringBuilder();
 
+        boolean first = true;
         for (int i = 0; i < games.size(); i++) {
             String chosenGame = games.get(i);
             if (!chosenGame.equals(game)) {
-                if (i > 0) updatedGames.append(" "); // first element won't have a space
+                if (!first) updatedGames.append(" "); // first element won't have a space
                 updatedGames.append(chosenGame);
+                first = false;
             }
         }
 

@@ -258,4 +258,10 @@ public class MainActivity extends AppCompatActivity {
 
         deleteGameDialog.show();
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateGames(); // if deleted a game, update games is necessary
+    }
 }
