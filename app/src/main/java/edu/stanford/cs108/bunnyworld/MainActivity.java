@@ -7,10 +7,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.widget.*;
 import android.view.View;
 
 import java.util.ArrayList;
+
+import static android.content.DialogInterface.BUTTON_NEGATIVE;
+import static android.content.DialogInterface.BUTTON_POSITIVE;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -26,9 +30,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         putRawFilesIntoInternalAndroidStorage();
+        updateGames();
+    }
+
+    private void updateGames() {
         ArrayList<String> gamesList = Page.getGames(this);
-        String[] gamesArr = new String[gamesList.size()];
-        games = gamesList.toArray(gamesArr);
+        games = new String[gamesList.size()];
+        games = gamesList.toArray(games);
     }
 
     // you only have to run this once on your emulator
@@ -51,12 +59,17 @@ public class MainActivity extends AppCompatActivity {
         final AlertDialog.Builder playGameDialog = new AlertDialog.Builder(MainActivity.this);
         playGameDialog.setTitle("Select game to play:");
 
-        playGameDialog.setSingleChoiceItems( games, 0 , new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                return;
-            }
-        });
+        Log.d("dog", " " + games.length);
+        if (games.length >= 1) {
+            playGameDialog.setSingleChoiceItems(games, 0, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    return;
+                }
+            });
+        } else {
+            playGameDialog.setMessage("No games available--create one!");
+        }
 
         playGameDialog.setPositiveButton("Play", null);
         playGameDialog.setNegativeButton("Cancel", null);
@@ -65,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         playGame.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
-                Button ok = playGame.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button ok = playGame.getButton(BUTTON_POSITIVE);
                 ok.setOnClickListener(new View.OnClickListener() {
 
                     @Override
@@ -81,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                Button cancel = playGame.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button cancel = playGame.getButton(BUTTON_NEGATIVE);
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -108,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         createGame.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
-                Button ok = createGame.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button ok = createGame.getButton(BUTTON_POSITIVE);
                 ok.setOnClickListener(new View.OnClickListener() {
 
                     @Override
@@ -138,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                Button cancel = createGame.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button cancel = createGame.getButton(BUTTON_NEGATIVE);
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -164,12 +177,16 @@ public class MainActivity extends AppCompatActivity {
         editGameDialog.setTitle("Select game to edit:");
 
 
-        editGameDialog.setSingleChoiceItems( games, 0 , new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                return;
-            }
-        });
+        if (games.length >= 1) {
+            editGameDialog.setSingleChoiceItems(games, 0, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    return;
+                }
+            });
+        } else {
+            editGameDialog.setMessage("No games available--create one!");
+        }
 
         editGameDialog.setPositiveButton("Edit", null);
         editGameDialog.setNegativeButton("Cancel", null);
@@ -179,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         editGame.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
-                Button ok = editGame.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button ok = editGame.getButton(BUTTON_POSITIVE);
                 ok.setOnClickListener(new View.OnClickListener() {
 
                     @Override
@@ -198,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                Button cancel = editGame.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button cancel = editGame.getButton(BUTTON_NEGATIVE);
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -210,5 +227,35 @@ public class MainActivity extends AppCompatActivity {
         });
 
         editGame.show();
+    }
+
+    // button click for deleting all games
+    public void deleteAllGames(View view) {
+        final AlertDialog deleteGameDialog = new AlertDialog.Builder(MainActivity.this).create();
+        deleteGameDialog.setTitle(getResources().getString(R.string.areyousure));
+        deleteGameDialog.setMessage(getResources().getString(R.string.deletegameswarning));
+
+        deleteGameDialog.setButton(BUTTON_POSITIVE, getResources().getString(R.string.ok),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == BUTTON_POSITIVE) {
+                            dialog.dismiss();
+                            Page.deleteAllGames(getApplicationContext());
+                            updateGames();
+                            Toast.makeText(getApplicationContext(), "All games deleted.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+        deleteGameDialog.setButton(BUTTON_NEGATIVE, getResources().getString(R.string.cancel),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == BUTTON_NEGATIVE) {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+
+        deleteGameDialog.show();
     }
 }
