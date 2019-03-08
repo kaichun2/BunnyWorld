@@ -195,6 +195,10 @@ public class Page {
     }
 
     public static void loadDatabaseFromJSONString(Context context, String json) {
+        if (json.replace(" ", "").equals("")) {
+            Log.d("dog", "provided json string is empty");
+            return;
+        }
         JSONParser parser = new JSONParser();
         try {
             JSONObject data = (JSONObject) parser.parse(json);
@@ -228,6 +232,11 @@ public class Page {
 
     // file is in internal storage
     private static String getDataFromFile(Context context, String filename) {
+        if (filename.replace(" ", "").equals(".json")) {
+            Log.d("dog", "file has no name");
+            return "";
+        }
+
         StringBuilder ret = new StringBuilder();
         try {
 
@@ -246,8 +255,11 @@ public class Page {
             in.close();
 
         } catch (IOException ex) {
-            Log.d("dog", "Error getting json data from file " + filename + " in getDataFromFile.");
+            ex.printStackTrace();
+            Log.d("dog", "Error getting data from file " + filename + " in getDataFromFile.");
         }
+
+        Log.d("dog", filename + ": " + ret.toString());
         return ret.toString();
     }
 
@@ -448,6 +460,10 @@ public class Page {
         ArrayList<String> games = new ArrayList<>();
         try {
             String fileText = getDataFromFile(context, GAME_NAMES_FILE + ".txt");
+            if (fileText.replace(" ", "").equals("")) {
+                // if file is empty, don't split (edge cases arise)
+                return new ArrayList<>();
+            }
 
             String[] fileGames = fileText.split(" ");
             for (String game : fileGames) {
@@ -458,6 +474,7 @@ public class Page {
             ex.printStackTrace();
             Log.d("error", "error when getting games from gamesnamefile.txt");
         }
+        Log.d("dog", "games: " + games.toString());
         return games;
     }
 
@@ -466,7 +483,7 @@ public class Page {
         ArrayList<String> gamesToDelete = Page.getGames(context);
 
         for (String game : gamesToDelete) {
-            deleteGameFromDatabase(context, game);
+            deleteJSONFileFromDatabase(context, game);
         }
 
         /* Empty the game_names file. */
@@ -483,7 +500,7 @@ public class Page {
     /* Deletes specified game's file in database and update game_names file. */
     /* Files should be json (as they are normally stored).*/
     public static void deleteGame(Context context, String game) {
-        deleteGameFromDatabase(context, game);
+        deleteJSONFileFromDatabase(context, game);
 
         // update game names file
         ArrayList<String> games = Page.getGames(context);
@@ -512,8 +529,8 @@ public class Page {
      * the database as opposed to also deleting it from the game_names
      * file. Used internally. It's just fod decomposition.
      */
-    private static void deleteGameFromDatabase(Context context, String game) {
-        File fileToDelete = new File(context.getFilesDir(), game + ".json");
+    private static void deleteJSONFileFromDatabase(Context context, String filename) {
+        File fileToDelete = new File(context.getFilesDir(), filename + ".json");
         fileToDelete.delete();
     }
 
@@ -592,7 +609,7 @@ public class Page {
         return ret.toString();
     }
 
-    public static void test(Context context) {
+//    public static void test(Context context) {
 //        Page.loadDatabase(context, SAMPLE_DATA_FILE);
 //        ArrayList<Page> pages = Page.getPages();
 //        String string1 = "";
@@ -635,5 +652,5 @@ public class Page {
 //        for (String game1: games2) {
 //            Log.d("waddup", game1);
 //        }
-    }
+//    }
 }

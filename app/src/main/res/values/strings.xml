@@ -22,6 +22,11 @@
     <string name="shape">shape</string>
     <string name="text">Text:</string>
     <string name="reset_script">Reset Script</string>
+    <string name="deletegames">Delete All Games</string>
+    <string name="areyousure">Are you sure?</string>
+    <string name="deletegameswarning">This will delete all the games currently in the database. Is that fine?</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
     <string name="properties_panel">Properties panel:</string>
     <string name="resource_panel">Resource panel:</string>
     <string-array name="location_array">
