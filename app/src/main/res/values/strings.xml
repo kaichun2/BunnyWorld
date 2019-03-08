@@ -22,4 +22,15 @@
     <string name="shape">shape</string>
     <string name="text">Text:</string>
     <string name="reset_script">Reset Script</string>
+    <string name="properties_panel">Properties panel:</string>
+    <string name="resource_panel">Resource panel:</string>
+    <string-array name="location_array">
+        <item>Show Right</item>
+        <item>Show Left</item>
+        <item>Hide</item>
+    </string-array>
+    <string-array name="visibility_array">
+        <item>Show</item>
+        <item>Hide</item>
+    </string-array>
 </resources>

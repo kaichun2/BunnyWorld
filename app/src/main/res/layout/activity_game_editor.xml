@@ -16,7 +16,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/entire_editor"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -26,18 +26,17 @@
 
         <edu.stanford.cs108.bunnyworld.CanvasView
             android:id="@+id/canvas"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="4"
             />
 
             <LinearLayout
                 android:id="@+id/right_panel"
-                android:layout_width="0dp"
+                android:layout_width="225dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:background="@color/dark_grey"
                 android:orientation="vertical"
+                android:layout_gravity="right"
                 >
 
                 <TextView
@@ -164,9 +163,10 @@
 
             </LinearLayout>
 
-    </LinearLayout>
+    </FrameLayout>
 
     <HorizontalScrollView
+        android:id="@+id/resource_panel"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
