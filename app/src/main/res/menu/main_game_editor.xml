@@ -6,6 +6,38 @@
     >
 
     <item
+        android:title="@string/properties_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:id="@+id/right_panel_visibility"
+        android:title=""
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:actionViewClass="android.widget.Spinner"
+        app:showAsAction="ifRoom"
+        />
+
+    <!--<item-->
+        <!--android:title="@string/resource_panel"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:showAsAction="ifRoom"-->
+        <!--/>-->
+
+    <!--<item-->
+        <!--android:id="@+id/resource_visibility"-->
+        <!--android:title=""-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:actionViewClass="android.widget.Spinner"-->
+        <!--app:showAsAction="ifRoom"-->
+        <!--/>-->
+
+    <item
         android:id="@+id/edit_page"
         android:title=""
         android:icon="@drawable/ic_edit_black_24dp"

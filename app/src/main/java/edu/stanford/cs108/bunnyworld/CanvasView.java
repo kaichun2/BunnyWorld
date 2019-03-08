@@ -26,7 +26,6 @@ public class CanvasView extends View {
 
     ArrayList<Shape> pageShapes;
     static int selectedResource;
-    static int numShapes;
     int selectedShape;
     Paint blueOutlinePaint;
     static private float xDown, yDown, offsetX = 0, offsetY = 0;
@@ -35,7 +34,6 @@ public class CanvasView extends View {
         super(context, attrs);
 
         pageShapes = null;
-        numShapes = 1;
         selectedShape = -1;
 
         init();
@@ -125,8 +123,7 @@ public class CanvasView extends View {
         resource.setBackgroundColor(getResources().getColor(R.color.light_grey));
 
         Shape newShape = new Shape();
-        newShape.setName(getResources().getString(R.string.shape) + numShapes);
-        numShapes++;
+        newShape.setName(getResources().getString(R.string.shape) + (Shape.getAllShapes().size() + 1));
 
         int width = resource.getWidth();
         newShape.setX(xDown - width/2);
