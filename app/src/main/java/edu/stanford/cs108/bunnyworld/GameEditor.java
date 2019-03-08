@@ -1,5 +1,6 @@
 package edu.stanford.cs108.bunnyworld;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -647,7 +648,9 @@ public class GameEditor extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         // TO DO: delete object
-                        // remove from the arraylist\
+                        // remove from the arraylist
+                        // CHECK IF THERES ONLY ONE PAGE?
+                        Page.getPages().remove(currPage);
                         onBackPressed();
                         delete.dismiss();
                     }
@@ -715,7 +718,6 @@ public class GameEditor extends AppCompatActivity {
                         EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
 
                         currPage.setPageName(newPageName.getText().toString());
-
 
                         getSupportActionBar().setTitle(currPage.getPageName());
 
