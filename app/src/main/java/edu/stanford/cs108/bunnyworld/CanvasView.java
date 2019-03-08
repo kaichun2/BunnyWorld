@@ -72,9 +72,6 @@ public class CanvasView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-
-        // Documentation for dragging: https://developer.android.com/training/gestures/scale
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 xDown = event.getX();
@@ -142,17 +139,19 @@ public class CanvasView extends View {
 
         newShape.setPageID(GameEditor.getCurrPage().getPageID());
 
-        // imgName is decided by whether or not it's a texicon image
-        // we will have a text property available iff it's a texticon image
-        // TODO: tassica: make textLayout visible/not visible. unsure how to access from view
         String imgName = resource.getTag().toString();
-//        LinearLayout textLayout = ((GameEditor)getContext()).findViewById(R.id.textLayout);
+
         if (imgName.equals("texticon")) {
             newShape.setShapeText(getResources().getString(R.string.default_text_message));
-//            textLayout.setVisibility(this.VISIBLE);
-        } else {
-            newShape.setImgName(resource.getTag().toString());
-//            textLayout.setVisibility(this.GONE);
+            newShape.setHeight(newShape.getShapeText().getFontSize());
+            // TO DO: get actual width
+            newShape.setWidth(newShape.getText().length() * newShape.getShapeText().getFontSize() / 2);
+        }
+
+        newShape.setImgName(resource.getTag().toString());
+
+        if (imgName.equals("greybox")) {
+            newShape.setImgName("");
         }
 
         pageShapes.add(newShape);
@@ -187,6 +186,9 @@ public class CanvasView extends View {
 
             if (xDown >= left && xDown <= right && yDown >= top && yDown <= bottom) {
                 selectedShape = i;
+
+                System.out.println(curr.getImgName());
+                System.out.println(curr.getName());
                 GameEditor.setSelectedShaped(i);
                 TextView objName = ((GameEditor)getContext()).findViewById(R.id.obj_name);
                 objName.setText(curr.getName());

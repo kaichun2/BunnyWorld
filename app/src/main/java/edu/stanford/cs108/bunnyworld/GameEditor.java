@@ -38,6 +38,7 @@ public class GameEditor extends AppCompatActivity {
     static Page currPage;
     int selectedResource;
     static int selectedShape;
+    String gameName;
     private String triggers[] = {"on click", "on enter", "on drop", "property" };
     private String scriptActions[] = {"goto", "play", "visibility"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
@@ -55,6 +56,7 @@ public class GameEditor extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
 
         int pageID = extras.getInt(PageDirectory.PAGE_ID);
+        gameName = extras.getString(PageDirectory.GAME);
         ArrayList<Page> allPages = Page.getPages();
         currPage = allPages.get(pageID - 1);
 
@@ -193,22 +195,33 @@ public class GameEditor extends AppCompatActivity {
 
                         @Override
                         public void onClick(View v) {
-                            System.out.println("triggered property dialog");
                             EditText x_val = (EditText) ((AlertDialog) property).findViewById(R.id.editable_X);
                             EditText y_val = (EditText) ((AlertDialog) property).findViewById(R.id.editable_Y);
                             EditText width = (EditText) ((AlertDialog) property).findViewById(R.id.editable_width);
                             EditText height = (EditText) ((AlertDialog) property).findViewById(R.id.editable_height);
+                            EditText newText = (EditText) ((AlertDialog) property).findViewById(R.id.editable_text_string);
                             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
+
                             curr.setX(Float.parseFloat(x_val.getText().toString()));
-                            System.out.println(Float.parseFloat(x_val.getText().toString()));
-                            System.out.println(curr.getX());
                             curr.setY(Float.parseFloat(y_val.getText().toString()));
-                            curr.setWidth(Float.parseFloat(width.getText().toString()));
-                            curr.setHeight(Float.parseFloat(height.getText().toString()));
+
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
+                            curr.setShapeText(newText.getText().toString());
+
+                            String imgName = curr.getImgName();
+                            if (imgName.equals("texticon")) {
+                                curr.setWidth(curr.getText().length() * curr.getShapeText().getFontSize() / 2);
+                                curr.setHeight(curr.getShapeText().getFontSize());
+                            } else {
+                                curr.setWidth(Float.parseFloat(width.getText().toString()));
+                                curr.setHeight(Float.parseFloat(height.getText().toString()));
+                            }
+
+                            CanvasView canvasView = findViewById(R.id.canvas);
+                            canvasView.invalidate();
 
                             property.dismiss();
                         }
@@ -233,6 +246,16 @@ public class GameEditor extends AppCompatActivity {
             EditText height = (EditText) ((AlertDialog) property).findViewById(R.id.editable_height);
             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
+            EditText newText = (EditText) ((AlertDialog) property).findViewById(R.id.editable_text_string);
+
+            LinearLayout textLayout = ((AlertDialog) property).findViewById(R.id.textLayout);
+
+            String imgName = curr.getImgName();
+            if (imgName.equals("texticon")) {
+                textLayout.setVisibility(View.VISIBLE);
+            } else {
+                textLayout.setVisibility(View.GONE);
+            }
 
             isMovable.setChecked(curr.isMovable());
             isHidden.setChecked(!curr.isVisible());
@@ -382,7 +405,6 @@ public class GameEditor extends AppCompatActivity {
                         String [] oldScript;
                         if (script != null) {
                             oldScript = script.split(" ");
-                            System.out.println(Arrays.toString(oldScript));
                         } else {
                             oldScript = null;
                         }
@@ -467,7 +489,6 @@ public class GameEditor extends AppCompatActivity {
                         String [] oldScript;
                         if (script != null) {
                             oldScript = script.split(" ");
-                            System.out.println(Arrays.toString(oldScript));
                         } else {
                             oldScript = null;
                         }
@@ -670,28 +691,16 @@ public class GameEditor extends AppCompatActivity {
 
         delete.show();
     }
-    
-    public void saveObject(View view) {
-
-        // TO DO: pass in object name
-        final Shape curr = currPage.getShapes().get(selectedShape);
-
-        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + curr.getName(), Toast.LENGTH_SHORT);
-
-        saveToast.show();
-
-        // TO DO: verify save
-        // loadIntoDatabaseFile
-    }
 
     public void savePage(MenuItem item) {
 
-        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + currPage.getPageName(), Toast.LENGTH_SHORT);
+        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
 
         saveToast.show();
 
         // TO DO: verify save
         // loadIntoDatabaseFile
+        Page.loadIntoDatabaseFile(this, gameName);
     }
 
     public void editPageName(MenuItem item) {
@@ -745,5 +754,15 @@ public class GameEditor extends AppCompatActivity {
 
     static public void setSelectedShaped(int i) {
         selectedShape = i;
+    }
+
+    public void resetScript(View view) {
+        final Shape curr = currPage.getShapes().get(selectedShape);
+
+        Toast resetToast = Toast.makeText(getApplicationContext(), "Reset script of " + curr.getName(), Toast.LENGTH_SHORT);
+
+        resetToast.show();
+
+        curr.setScript("");
     }
 }

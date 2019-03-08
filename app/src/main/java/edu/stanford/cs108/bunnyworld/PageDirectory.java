@@ -7,6 +7,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,11 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Intent;
+import android.widget.Toast;
 
 public class PageDirectory extends AppCompatActivity {
 
     ArrayList<Page> pages;
     public static final String PAGE_ID = "page";
+    public static final String GAME = "game";
+    String gameName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,15 +40,15 @@ public class PageDirectory extends AppCompatActivity {
         setContentView(R.layout.activity_page_directory);
 
         Bundle extras = getIntent().getExtras();
-        String game = extras.getString(MainActivity.GAME_EXTRA);
+        gameName = extras.getString(MainActivity.GAME_EXTRA);
         boolean isCreate = extras.getBoolean(MainActivity.IS_CREATE);
 
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.game_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(game);
+        getSupportActionBar().setTitle(gameName);
 
         if (!isCreate) { // edit, load it
-            Page.loadDatabase(this, game);
+            Page.loadDatabase(this, gameName);
             drawPages();
         } else {
             // reset data from any previous things we've done, create game should be fresh
@@ -74,6 +79,7 @@ public class PageDirectory extends AppCompatActivity {
 
                 Intent gameEditorIntent = new Intent(getApplicationContext(), GameEditor.class);
                 gameEditorIntent.putExtra(PAGE_ID, pageID);
+                gameEditorIntent.putExtra(GAME, gameName);
                 startActivity(gameEditorIntent);
 
 
@@ -121,6 +127,7 @@ public class PageDirectory extends AppCompatActivity {
 
                         Intent gameEditorIntent = new Intent(getApplicationContext(), GameEditor.class);
                         gameEditorIntent.putExtra(PAGE_ID, newPage.getPageID());
+                        gameEditorIntent.putExtra(GAME, gameName);
                         startActivity(gameEditorIntent);
 
 
@@ -159,4 +166,113 @@ public class PageDirectory extends AppCompatActivity {
     }
 
 
+    public void editGameName(MenuItem item) {
+        final AlertDialog.Builder gameNameDialog = new AlertDialog.Builder(PageDirectory.this);
+        gameNameDialog.setTitle("Enter new game name:");
+        gameNameDialog.setView(R.layout.name_editor);
+
+        gameNameDialog.setPositiveButton("Ok", null);
+        gameNameDialog.setNegativeButton("Cancel", null);
+
+
+        final AlertDialog gameNameD = gameNameDialog.create();
+        gameNameD.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button ok = gameNameD.getButton(AlertDialog.BUTTON_POSITIVE);
+                ok.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        // TO DO: change page name
+                        // validate that it is a unique page name
+                        // verify that there are no spaces
+                        EditText newPageName = ((AlertDialog) gameNameD).findViewById(R.id.editable_page_name);
+
+                        Page.deleteGame(getApplicationContext(), gameName);
+
+                        gameName = newPageName.getText().toString();
+
+                        getSupportActionBar().setTitle(gameName);
+
+                        Page.loadIntoDatabaseFile(getApplicationContext(), gameName);
+
+                        gameNameD.dismiss();
+                    }
+                });
+
+                Button cancel = gameNameD.getButton(AlertDialog.BUTTON_NEGATIVE);
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // do nothing
+                        gameNameD.dismiss();
+                    }
+                });
+            }
+        });
+
+        gameNameD.show();
+
+    }
+
+    public void saveGame(MenuItem item) {
+        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
+
+        saveToast.show();
+
+        // TO DO: verify save
+        // loadIntoDatabaseFile
+        Page.loadIntoDatabaseFile(this, gameName);
+    }
+
+    public void deleteGame(MenuItem item) {
+        final AlertDialog.Builder deleteDialog = new AlertDialog.Builder(PageDirectory.this);
+        deleteDialog.setTitle("Delete");
+
+        deleteDialog.setMessage("Are you sure you want to delete?");
+
+        deleteDialog.setPositiveButton("Delete", null);
+        deleteDialog.setNegativeButton("Cancel", null);
+
+        final AlertDialog delete = deleteDialog.create();
+        delete.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button yes = delete.getButton(AlertDialog.BUTTON_POSITIVE);
+                yes.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+
+                        Page.deleteGame(getApplicationContext(), gameName);
+                        Page.getPages().clear();
+                        Page.getPossessions().clear();
+                        Shape.getAllShapes().clear();
+                        onBackPressed();
+                        delete.dismiss();
+                    }
+                });
+
+                Button no = delete.getButton(AlertDialog.BUTTON_NEGATIVE);
+                no.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        // do nothing
+                        delete.dismiss();
+                    }
+                });
+            }
+        });
+
+        delete.show();
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.page_dir_editor, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 }

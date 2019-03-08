@@ -51,7 +51,7 @@ public class Shape {
     private static HashMap<String, BitmapDrawable> drawables = new HashMap<>();
     private static BitmapDrawable carrotDrawable, carrot2Drawable, deathDrawable;
     private static BitmapDrawable duckDrawable, fireDrawable, mysticDrawable;
-    private static BitmapDrawable texticonDrawable;
+    private static BitmapDrawable texticonDrawable, greyboxDrawable;
 
 
     public Shape(String name, float x, float y, float width, float height, String script,
@@ -88,6 +88,7 @@ public class Shape {
         fireDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.fire);
         mysticDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.mystic);
         texticonDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.texticon);
+        greyboxDrawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.greybox);
 
         // initialize drawables hashmap so we can access them by imgName
         drawables.put("carrot", carrotDrawable);
@@ -97,6 +98,7 @@ public class Shape {
         drawables.put("fire", fireDrawable);
         drawables.put("mystic", mysticDrawable);
         drawables.put("texticon", texticonDrawable);
+        drawables.put("greybox", greyboxDrawable);
     }
 
     public static HashMap<String, BitmapDrawable> getDrawables(Context context) {
@@ -328,6 +330,10 @@ public class Shape {
 
     public HashMap<String, String> getCommands() { return commands; }
 
+    public ShapeText getShapeText() {
+        return textObj;
+    }
+
     public static ArrayList<Shape> getAllShapes() { return allShapes; }
 
     // sets script ivar but also parses script
@@ -431,7 +437,8 @@ public class Shape {
 
                 textPaint.setColor(Color.BLACK);
                 textPaint.setTextSize(fontSize);
-                canvas.drawText(text, xLoc, yLoc, textPaint);
+                // TODO: changed xLoc to x and yLoc to y
+                canvas.drawText(text, x, y + fontSize, textPaint);
             }
         }
 
