@@ -26,7 +26,7 @@ public class CanvasView extends View {
 
     ArrayList<Shape> pageShapes;
     static int selectedResource;
-    int selectedShape;
+    static int selectedShape;
     Paint blueOutlinePaint;
     static private float xDown, yDown, offsetX = 0, offsetY = 0;
 
@@ -74,9 +74,12 @@ public class CanvasView extends View {
             case MotionEvent.ACTION_DOWN:
                 xDown = event.getX();
                 yDown = event.getY();
-                ImageView resource = ((GameEditor)getContext()).findViewById(selectedResource);
+                System.out.println(selectedResource);
+                View resource = ((GameEditor)getContext()).findViewById(selectedResource);
 
-                if (resource != null && selectedResource != - 1) {
+                if (resource != null && selectedResource != - 1 && selectedResource != 0) {
+
+                    System.out.println(resource);
 
                     createShape(resource, xDown, yDown);
 
@@ -119,7 +122,11 @@ public class CanvasView extends View {
         selectedResource = resourceId;
     }
 
-    private void createShape(ImageView resource, float xDown, float yDown) {
+    static public void setSelectedShape(int shapeId) {
+        selectedShape = shapeId;
+    }
+
+    private void createShape(View resource, float xDown, float yDown) {
         resource.setBackgroundColor(getResources().getColor(R.color.light_grey));
 
         Shape newShape = new Shape();
@@ -143,6 +150,8 @@ public class CanvasView extends View {
             newShape.setHeight(newShape.getShapeText().getFontSize());
             // TO DO: get actual width
             newShape.setWidth(newShape.getText().length() * newShape.getShapeText().getFontSize() / 2);
+            newShape.setX(xDown - newShape.getWidth() / 2);
+            newShape.setY(yDown - newShape.getHeight() / 2);
         }
 
         newShape.setImgName(resource.getTag().toString());
