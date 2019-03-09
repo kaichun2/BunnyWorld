@@ -297,13 +297,20 @@ public class GameEditor extends AppCompatActivity {
                             curr.setShapeText(newText.getText().toString());
 
                             String imgName = curr.getImgName();
-                            if (imgName.equals("texticon")) {
-                                curr.setWidth(curr.getText().length() * curr.getShapeText().getFontSize() / 2);
-                                curr.setHeight(curr.getShapeText().getFontSize());
-                            } else {
+                            if (!imgName.equals("texticon")) {
                                 curr.setWidth(Float.parseFloat(width.getText().toString()));
                                 curr.setHeight(Float.parseFloat(height.getText().toString()));
                             }
+
+                            // text object
+                            if (!curr.getText().isEmpty()) {
+                                // setting font size
+                                EditText fontSize = (EditText) ((AlertDialog) property).findViewById(R.id.font_size);
+                                curr.getShapeText().setFontSize(Integer.parseInt(fontSize.getText().toString()));
+                                curr.setWidth(curr.getText().length() * curr.getShapeText().getFontSize() / 2);
+                                curr.setHeight(curr.getShapeText().getFontSize());
+                            }
+
 
                             CanvasView canvasView = findViewById(R.id.canvas);
                             canvasView.invalidate();
@@ -334,13 +341,23 @@ public class GameEditor extends AppCompatActivity {
             EditText newText = (EditText) ((AlertDialog) property).findViewById(R.id.editable_text_string);
 
             LinearLayout textLayout = ((AlertDialog) property).findViewById(R.id.textLayout);
+            LinearLayout hwLayout = ((AlertDialog) property).findViewById(R.id.height_width_layout);
+            LinearLayout fontLayout = ((AlertDialog) property).findViewById(R.id.font_layout);
+            EditText fontSize = (EditText) ((AlertDialog) property).findViewById(R.id.font_size);
 
             String imgName = curr.getImgName();
             if (imgName.equals("texticon")) {
                 textLayout.setVisibility(View.VISIBLE);
+                fontLayout.setVisibility(View.VISIBLE);
+                hwLayout.setVisibility(View.GONE);
+                fontSize.setText(String.valueOf((curr.getShapeText().getFontSize())));
             } else {
                 textLayout.setVisibility(View.GONE);
+                fontLayout.setVisibility(View.INVISIBLE);
+                hwLayout.setVisibility(View.VISIBLE);
             }
+
+
 
             isMovable.setChecked(curr.isMovable());
             isHidden.setChecked(!curr.isVisible());
@@ -348,6 +365,7 @@ public class GameEditor extends AppCompatActivity {
             y_val.setText(String.valueOf(curr.getY()));
             width.setText(String.valueOf(curr.getWidth()));
             height.setText(String.valueOf(curr.getHeight()));
+            if (imgName.equals("texticon")) newText.setText(curr.getText());
 
         }
     }
