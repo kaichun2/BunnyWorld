@@ -53,6 +53,10 @@ public class Shape {
     private static BitmapDrawable duckDrawable, fireDrawable, mysticDrawable;
     private static BitmapDrawable texticonDrawable, greyboxDrawable;
 
+    /* Array with the names of valid sounds. */
+    private static String[] sounds = new String[] {"evillaugh", "carrotcarrotcarrot", "fire",
+                                                   "hooray", "munch", "munching", "woof"};
+
 
     public Shape(String name, float x, float y, float width, float height, String script,
                  String imgName, int pageID, ShapeText textObj, boolean isVisible, boolean isMovable) {
@@ -257,7 +261,7 @@ public class Shape {
     }
 
     /* Plays media file when given name of mp3 file in res/raw. */
-    private void playAudio(Context context, String filename) {
+    public static void playAudio(Context context, String filename) {
         int audioID = context.getResources().getIdentifier(filename,
                 "raw", context.getPackageName());
         MediaPlayer mp = MediaPlayer.create(context, audioID);
@@ -335,6 +339,8 @@ public class Shape {
     }
 
     public static ArrayList<Shape> getAllShapes() { return allShapes; }
+
+    public static String[] getSounds() { return sounds; }
 
     // sets script ivar but also parses script
     public void setScript(String script) {
