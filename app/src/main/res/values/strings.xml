@@ -30,6 +30,8 @@
     <string name="properties_panel">Properties panel:</string>
     <string name="resource_panel">Resource panel:</string>
     <string name="font">Font size:</string>
+    <string name="choose_shape">Choose shape:</string>
+    <string name="on_drop">on drop</string>
     <string name="restart">RESTART</string>
     <string-array name="location_array">
         <item>Show Right</item>

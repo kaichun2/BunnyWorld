@@ -79,7 +79,7 @@ public class Shape {
     public Shape() {
         /* Default values, all attributes should be set using setters. */
         this("", -1.0f, -1.0f, -1.0f, -1.0f, "", "",
-                -1,null, true, true);
+                -1,null, true, false);
     }
 
     // init drawables and map the imgNames to the respective drawables
