@@ -47,7 +47,7 @@ public class GameEditor extends AppCompatActivity {
     static int selectedShape;
     String gameName;
     private String triggers[] = {"on click", "on enter", "on drop", "property" };
-    private String scriptActions[] = {"goto", "play", "visibility"};
+    private String scriptActions[] = {"goto", "play", "hide", "show"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
 
     @Override
@@ -114,7 +114,7 @@ public class GameEditor extends AppCompatActivity {
                         if (groupPosition == 3) {
                             showPropertyDialogs(action);
                         } else {
-                            showTriggerDialogs(action, groupPosition);
+                            showTriggerDialogs(action, groupPosition, childPosition);
                         }
 
                         return false;
@@ -243,7 +243,7 @@ public class GameEditor extends AppCompatActivity {
         }
     }
 
-    private void showTriggerDialogs(String action, int groupPosition) {
+    private void showTriggerDialogs(String action, int groupPosition, int childPosition) {
         if (action.equals(scriptActions[0])) {
 
             showGoToDialog(groupPosition);
@@ -252,9 +252,9 @@ public class GameEditor extends AppCompatActivity {
 
             showPlaySoundDialog(groupPosition);
 
-        } else if (action.equals(scriptActions[2])) {
+        } else if (action.equals(scriptActions[2]) || action.equals(scriptActions[3])) {
 
-            showVisiblityDialog(groupPosition);
+            showVisiblityDialog(groupPosition, childPosition);
 
         }
 
@@ -521,7 +521,7 @@ public class GameEditor extends AppCompatActivity {
                         if (oldScript != null) {
                             for (int i = 0; i < oldScript.length - 3; i++) {
                                 if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals("play")) {
-                                    oldScript[i + 3] = checkedItem.toString();
+                                    oldScript[i + 3] = checkedItem.toString()  + ";";
                                     didUpdate = true;
                                 }
                             }
@@ -560,15 +560,24 @@ public class GameEditor extends AppCompatActivity {
 
     }
 
-    private void showVisiblityDialog(final int groupPosition) {
+    private void showVisiblityDialog(final int groupPosition, final int childPosition) {
         final AlertDialog.Builder visibilityDialog = new AlertDialog.Builder(GameEditor.this);
-        visibilityDialog.setTitle("Choose the visibility:");
+        visibilityDialog.setTitle("Choose the page to " + scriptActions[childPosition] + ":");
 
         visibilityDialog.setPositiveButton("Ok", null);
         visibilityDialog.setNegativeButton("Cancel", null);
 
         // TO DO: replace with the current visibility
-        visibilityDialog.setSingleChoiceItems( new String[] {"hide", "show"}, 0 , new DialogInterface.OnClickListener() {
+
+        ArrayList<Shape> allShapes = currPage.getShapes();
+
+        String[] shapeNames = new String[allShapes.size()];
+
+        for (int i = 0; i < allShapes.size(); i++) {
+            shapeNames[i] = allShapes.get(i).getName();
+        }
+
+        visibilityDialog.setSingleChoiceItems( shapeNames, 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 return;
@@ -603,8 +612,8 @@ public class GameEditor extends AppCompatActivity {
 
                         if (oldScript != null) {
                             for (int i = 0; i < oldScript.length - 3; i++) {
-                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals(checkedItem.toString())) {
-                                    oldScript[i + 3] = curr.getName();
+                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals(scriptActions[childPosition])) {
+                                    oldScript[i + 3] = checkedItem.toString() + ";";
                                     didUpdate = true;
                                 }
                             }
@@ -613,9 +622,9 @@ public class GameEditor extends AppCompatActivity {
 
                         if (!didUpdate) {
                             if (script != null) {
-                                newScript = script + " " + triggers[groupPosition] + " " + checkedItem.toString() + " " + curr.getName() + ";";
+                                newScript = script + " " + triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
                             } else {
-                                newScript = triggers[groupPosition] + " " + checkedItem.toString() + " " + curr.getName() + ";";
+                                newScript = triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
                             }
 
                         } else {
