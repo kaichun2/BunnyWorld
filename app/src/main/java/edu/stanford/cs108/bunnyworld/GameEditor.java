@@ -473,7 +473,7 @@ public class GameEditor extends AppCompatActivity {
 
         // TO DO: set the checkedItem to the current sounds that plays
         // TO DO: replace with the array of sound resources
-        playSoundDialog.setSingleChoiceItems( new String[] {"cat sound", "dog sound"}, 0 , new DialogInterface.OnClickListener() {
+        playSoundDialog.setSingleChoiceItems(Shape.getSounds(), 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 return;
@@ -490,7 +490,9 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: play sound
+                        ListView lw = ((AlertDialog) playSound).getListView();
+                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+                        Shape.playAudio(getApplicationContext(), checkedItem.toString());
                     }
                 });
 
@@ -548,7 +550,6 @@ public class GameEditor extends AppCompatActivity {
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // do nothing
                         playSound.dismiss();
                     }
                 });
