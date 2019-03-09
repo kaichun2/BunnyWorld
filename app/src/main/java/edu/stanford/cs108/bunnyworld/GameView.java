@@ -28,15 +28,22 @@ public class GameView extends View {
 
     private static final float JUMP_OFFSET = 12; // when transitioning between game and possessions
 
+    // when reset is true, will load the default properties
+    // since this signifies the user having clicked the
+    // restart button in GameActivity
+    public static boolean reset = false;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setDefaultProperties();
+        init();
+    }
+
+    private void setDefaultProperties() {
         currentPageIndex = 0;
         openNewPage = true;
         bottomShapeIndex = -1;
         selectedShape = null;
-
-        init();
     }
 
     private void init() {
@@ -61,11 +68,14 @@ public class GameView extends View {
         canvas.drawLine(0, yBoundary, getWidth(), yBoundary, blackPaint);
     }
 
-
     @Override
     public void onDraw(Canvas canvas) {
-        drawBoundaryLine(canvas); // draw the boundary line for possessions always
+        if (reset) {
+            reset = false;
+            setDefaultProperties();
+        }
 
+        drawBoundaryLine(canvas); // draw the boundary line for possessions always
 
         // handle logic for opening a new page (calling onEnter scripts)
         Page currPage = GameActivity.pages.get(currentPageIndex);
