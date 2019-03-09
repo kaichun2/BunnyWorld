@@ -32,6 +32,7 @@
     <string name="font">Font size:</string>
     <string name="choose_shape">Choose shape:</string>
     <string name="on_drop">on drop</string>
+    <string name="restart">RESTART</string>
     <string-array name="location_array">
         <item>Show Right</item>
         <item>Show Left</item>
