@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -126,6 +127,18 @@ public class GameEditor extends AppCompatActivity {
 
         selectedResource = -1;
 
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int windowHeight = displayMetrics.heightPixels;
+        int windowWidth = displayMetrics.widthPixels;
+
+        LinearLayout.LayoutParams resourceParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, windowHeight / 4);
+        HorizontalScrollView resourcePanel = findViewById(R.id.resource_panel);
+        resourcePanel.setLayoutParams(resourceParams);
+
+        FrameLayout.LayoutParams rightpanelParams = new FrameLayout.LayoutParams(windowWidth / 5, FrameLayout.LayoutParams.MATCH_PARENT);
+        LinearLayout rightPanel = findViewById(R.id.right_panel);
+        rightPanel.setLayoutParams(rightpanelParams);
 
     }
 
@@ -141,15 +154,6 @@ public class GameEditor extends AppCompatActivity {
         propertiesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         propertiesSpinner.setAdapter(propertiesAdapter);
-
-//        MenuItem resourceItem = menu.findItem(R.id.resource_visibility);
-//        Spinner resourceSpinner = (Spinner) resourceItem.getActionView();
-//
-//        ArrayAdapter<CharSequence> resourceAdapter = ArrayAdapter.createFromResource(this,
-//                R.array.visibility_array, android.R.layout.simple_spinner_item);
-//        resourceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//
-//        resourceSpinner.setAdapter(resourceAdapter);
 
         propertiesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
@@ -703,6 +707,8 @@ public class GameEditor extends AppCompatActivity {
                         // delete from array list
                         currPage.getShapes().remove(curr);
                         selectedShape = -1;
+
+                        CanvasView.setSelectedShape(selectedShape);
 
                         LinearLayout objProperties = findViewById(R.id.obj_properties);
                         objProperties.setVisibility(v.GONE);
