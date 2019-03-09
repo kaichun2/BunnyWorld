@@ -32,6 +32,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,8 +60,6 @@ public class GameEditor extends AppCompatActivity {
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-        // pass page ID
         Bundle extras = getIntent().getExtras();
 
         int pageID = extras.getInt(PageDirectory.PAGE_ID);
@@ -67,7 +67,6 @@ public class GameEditor extends AppCompatActivity {
         ArrayList<Page> allPages = Page.getPages();
         currPage = allPages.get(pageID - 1);
 
-        // TO DO: Set to page name
         getSupportActionBar().setTitle(currPage.getPageName());
 
 
@@ -113,6 +112,8 @@ public class GameEditor extends AppCompatActivity {
 
                         if (groupPosition == 3) {
                             showPropertyDialogs(action);
+                        } else if (groupPosition == 2) {
+                            showDropDialogs(action, groupPosition, childPosition);
                         } else {
                             showTriggerDialogs(action, groupPosition, childPosition);
                         }
@@ -162,7 +163,6 @@ public class GameEditor extends AppCompatActivity {
             public void onItemSelected(AdapterView adapterView, View view, int i, long l) {
                 String selected = adapterView.getSelectedItem().toString();
                 LinearLayout propertiesView = findViewById(R.id.right_panel);
-                FrameLayout entireEditor = findViewById(R.id.entire_editor);
 
                 if (selected.equals("Show Left")) {
                     FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(225, FrameLayout.LayoutParams.MATCH_PARENT);
@@ -177,7 +177,6 @@ public class GameEditor extends AppCompatActivity {
                 } else if (selected.equals("Hide")) {
                     propertiesView.setVisibility(view.GONE);
                 }
-
             }
 
             @Override
@@ -185,29 +184,6 @@ public class GameEditor extends AppCompatActivity {
 
             }
         });
-
-//        resourceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//
-//            @Override
-//
-//            public void onItemSelected(AdapterView adapterView, View view, int i, long l) {
-//
-//                String selected = adapterView.getSelectedItem().toString();
-//                HorizontalScrollView resourceView = findViewById(R.id.resource_panel);
-//
-//                if (selected.equals("Show")) {
-//                    resourceView.setVisibility(view.VISIBLE);
-//                } else if (selected.equals("Hide")) {
-//                    resourceView.setVisibility(view.GONE);
-//                }
-//
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView adapterView) {
-//
-//            }
-//        });
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -242,19 +218,149 @@ public class GameEditor extends AppCompatActivity {
             resourceView.addView(resourceV);
         }
     }
-
-    private void showTriggerDialogs(String action, int groupPosition, int childPosition) {
+    
+    private void showDropDialogs(String action, int groupPosition, int childPosition) {
         if (action.equals(scriptActions[0])) {
 
-            showGoToDialog(groupPosition);
+            showOnDropDialog(groupPosition, childPosition, "Choose the page to go to:", "Choose page:", getShapeNames(), getPageNames());
 
         } else if (action.equals(scriptActions[1])) {
 
-            showPlaySoundDialog(groupPosition);
+            showOnDropDialog(groupPosition, childPosition, "Choose the sound to play:", "Choose sound:", getShapeNames(), Shape.getSounds());
 
         } else if (action.equals(scriptActions[2]) || action.equals(scriptActions[3])) {
 
-            showVisiblityDialog(groupPosition, childPosition);
+            showOnDropDialog(groupPosition, childPosition, "Choose the shape to " + scriptActions[childPosition] + ":", "Choose shape:", getShapeNames(), getShapeNames());
+
+        }
+    }
+
+    private void showOnDropDialog(final int groupPosition, final int childPosition, String title, String message, String[] shapeNames, String[] arrayNames) {
+        final AlertDialog.Builder triggerDialog = new AlertDialog.Builder(GameEditor.this);
+        triggerDialog.setTitle(title);
+        triggerDialog.setView(R.layout.ondrop_dialog);
+
+        View holder = View.inflate(this, R.layout.ondrop_dialog, null);
+        triggerDialog.setView(holder);
+
+        final Spinner shapeSpinner = (Spinner) holder.findViewById(R.id.shape_options);
+
+        ArrayAdapter<String> shapedataAdapter = new ArrayAdapter<String> (this, android.R.layout.simple_spinner_item, shapeNames);
+        shapedataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        shapeSpinner.setAdapter(shapedataAdapter);
+
+        final Spinner otherSpinner = (Spinner) holder.findViewById(R.id.other_options);
+
+        ArrayAdapter<String> otherdataAdapter = new ArrayAdapter<String> (this, android.R.layout.simple_spinner_item, arrayNames);
+        otherdataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        otherSpinner.setAdapter(otherdataAdapter);
+
+        TextView otherText = (TextView) holder.findViewById(R.id.other_name);
+        otherText.setText(message);
+
+
+        triggerDialog.setPositiveButton("Ok", null);
+        triggerDialog.setNegativeButton("Cancel", null);
+
+        if (scriptActions[childPosition].equals("play")) {
+            triggerDialog.setNeutralButton("Play", null);
+        }
+
+        final Shape curr = currPage.getShapes().get(selectedShape);
+
+        final AlertDialog triggerD = triggerDialog.create();
+        triggerD.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button ok = triggerD.getButton(AlertDialog.BUTTON_POSITIVE);
+                ok.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+
+                        String shape = shapeSpinner.getSelectedItem().toString();
+                        String other = otherSpinner.getSelectedItem().toString();
+
+
+                        String script = curr.getScript();
+                        String newScript;
+
+                        if (script != null) {
+                            newScript = script + " " + triggers[groupPosition] + " " + shape + " " + scriptActions[childPosition] + " " + other + ";";
+                        } else {
+                            newScript = " " + triggers[groupPosition] + " " + shape + " " + scriptActions[childPosition] + " " + other + ";";
+                        }
+
+                        curr.setScript(newScript);
+
+                        triggerD.dismiss();
+                    }
+                });
+
+                Button cancel = triggerD.getButton(AlertDialog.BUTTON_NEGATIVE);
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // do nothing
+                        triggerD.dismiss();
+                    }
+                });
+
+                if (scriptActions[childPosition].equals("play")) {
+                    Button play = triggerD.getButton(AlertDialog.BUTTON_NEUTRAL);
+                    play.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+                            String other = otherSpinner.getSelectedItem().toString();
+                            Shape.playAudio(getApplicationContext(), other);
+                        }
+                    });
+                }
+            }
+        });
+
+        triggerD.show();
+
+    }
+
+    private String[] getPageNames() {
+        ArrayList<Page> allPages = Page.getPages();
+
+        String[] pageNames = new String[allPages.size()];
+
+        for(int i = 0; i < allPages.size(); i++) {
+            pageNames[i] = allPages.get(i).getPageName();
+        }
+
+        return pageNames;
+    }
+
+    private String[] getShapeNames() {
+        ArrayList<Shape> allShapes = Shape.getAllShapes();
+
+        String[] shapeNames = new String[allShapes.size()];
+
+        for (int i = 0; i < allShapes.size(); i++) {
+            shapeNames[i] = allShapes.get(i).getName();
+        }
+
+        return shapeNames;
+    }
+
+    private void showTriggerDialogs(String action, int groupPosition, int childPosition) {
+
+        if (action.equals(scriptActions[0])) {
+
+            showDialog(groupPosition, childPosition, "Choose the page to go to:", getPageNames() );
+
+        } else if (action.equals(scriptActions[1])) {
+
+            showDialog(groupPosition, childPosition, "Choose the sound to play:", Shape.getSounds() );
+
+        } else if (action.equals(scriptActions[2]) || action.equals(scriptActions[3])) {
+
+            showDialog(groupPosition, childPosition, "Choose the shape to " + scriptActions[childPosition] + ":", getShapeNames() );
 
         }
 
@@ -353,11 +459,9 @@ public class GameEditor extends AppCompatActivity {
                 fontSize.setText(String.valueOf((curr.getShapeText().getFontSize())));
             } else {
                 textLayout.setVisibility(View.GONE);
-                fontLayout.setVisibility(View.INVISIBLE);
+                fontLayout.setVisibility(View.GONE);
                 hwLayout.setVisibility(View.VISIBLE);
             }
-
-
 
             isMovable.setChecked(curr.isMovable());
             isHidden.setChecked(!curr.isVisible());
@@ -370,22 +474,20 @@ public class GameEditor extends AppCompatActivity {
         }
     }
 
-    private void showGoToDialog(final int groupPosition) {
-        final AlertDialog.Builder gotoDialog = new AlertDialog.Builder(GameEditor.this);
-        gotoDialog.setTitle("Choose the page to go to:");
+    private void showDialog(final int groupPosition, final int childPosition, String message, String[] arrayNames) {
+        final AlertDialog.Builder triggerDialog = new AlertDialog.Builder(GameEditor.this);
+        triggerDialog.setTitle(message);
 
-        gotoDialog.setPositiveButton("Ok", null);
-        gotoDialog.setNegativeButton("Cancel", null);
+        triggerDialog.setPositiveButton("Ok", null);
+        triggerDialog.setNegativeButton("Cancel", null);
 
-        // TO DO: set the checkedItem to the current page that it goes to
-        ArrayList<Page> allPages = Page.getPages();
+        // TO DO: set the checkedItem to the current item that it goes to
 
-        String[] pageNames = new String[allPages.size()];
-
-        for(int i = 0; i < allPages.size(); i++) {
-            pageNames[i] = allPages.get(i).getPageName();
+        if (scriptActions[childPosition].equals("play")) {
+            triggerDialog.setNeutralButton("Play", null);
         }
-        gotoDialog.setSingleChoiceItems( pageNames, 0 , new DialogInterface.OnClickListener() {
+
+        triggerDialog.setSingleChoiceItems( arrayNames, 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 return;
@@ -394,17 +496,17 @@ public class GameEditor extends AppCompatActivity {
 
         final Shape curr = currPage.getShapes().get(selectedShape);
 
-        final AlertDialog goTo = gotoDialog.create();
-        goTo.setOnShowListener(new DialogInterface.OnShowListener() {
+        final AlertDialog triggerD = triggerDialog.create();
+        triggerD.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
-                Button ok = goTo.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button ok = triggerD.getButton(AlertDialog.BUTTON_POSITIVE);
                 ok.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
 
-                        ListView lw = ((AlertDialog) goTo).getListView();
+                        ListView lw = ((AlertDialog) triggerD).getListView();
                         Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
 
                         String script = curr.getScript();
@@ -419,196 +521,7 @@ public class GameEditor extends AppCompatActivity {
                         String newScript = "";
                         boolean didUpdate = false;
 
-                        if (oldScript != null) {
-                            for (int i = 0; i < oldScript.length - 3; i++) {
-                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals("goto")) {
-                                    oldScript[i + 3] = checkedItem.toString() + ";";
-                                    didUpdate = true;
-                                }
-                            }
-                        }
-
-
-                        if (!didUpdate) {
-                            if (script != null) {
-                                newScript = script + " " + triggers[groupPosition] + " goto " + checkedItem.toString() + ";";
-                            } else {
-                                newScript = " " + triggers[groupPosition] + " goto " + checkedItem.toString() + ";";
-                            }
-
-                        } else {
-                            for (int i = 0; i < oldScript.length; i++) {
-                                newScript += oldScript[i] + " ";
-                            }
-                        }
-
-                        curr.setScript(newScript);
-
-                        goTo.dismiss();
-                    }
-                });
-
-                Button cancel = goTo.getButton(AlertDialog.BUTTON_NEGATIVE);
-                cancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // do nothing
-                        goTo.dismiss();
-                    }
-                });
-            }
-        });
-
-        goTo.show();
-    }
-
-    private void showPlaySoundDialog(final int groupPosition) {
-        final AlertDialog.Builder playSoundDialog = new AlertDialog.Builder(GameEditor.this);
-        playSoundDialog.setTitle("Choose the sound to play:");
-
-        playSoundDialog.setPositiveButton("Ok", null);
-        playSoundDialog.setNegativeButton("Cancel", null);
-        playSoundDialog.setNeutralButton("Play", null);
-
-
-        // TO DO: set the checkedItem to the current sounds that plays
-        // TO DO: replace with the array of sound resources
-        playSoundDialog.setSingleChoiceItems(Shape.getSounds(), 0 , new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                return;
-            }
-        });
-
-
-        final AlertDialog playSound = playSoundDialog.create();
-        playSound.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialog) {
-                Button play = playSound.getButton(AlertDialog.BUTTON_NEUTRAL);
-                play.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        ListView lw = ((AlertDialog) playSound).getListView();
-                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
-                        Shape.playAudio(getApplicationContext(), checkedItem.toString());
-                    }
-                });
-
-                final Shape curr = currPage.getShapes().get(selectedShape);
-
-                Button ok = playSound.getButton(AlertDialog.BUTTON_POSITIVE);
-                ok.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        ListView lw = ((AlertDialog) playSound).getListView();
-                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
-
-                        String script = curr.getScript();
-                        String [] oldScript;
-                        if (script != null) {
-                            oldScript = script.split(" ");
-                        } else {
-                            oldScript = null;
-                        }
-
-                        String [] trigger = triggers[groupPosition].split(" ");
-                        String newScript = "";
-                        boolean didUpdate = false;
-
-                        if (oldScript != null) {
-                            for (int i = 0; i < oldScript.length - 3; i++) {
-                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals("play")) {
-                                    oldScript[i + 3] = checkedItem.toString()  + ";";
-                                    didUpdate = true;
-                                }
-                            }
-                        }
-
-
-                        if (!didUpdate) {
-                            if (script != null) {
-                                newScript = script + " " + triggers[groupPosition] + " play " + checkedItem.toString() + ";";
-                            } else {
-                                newScript = " " + triggers[groupPosition] + " play " + checkedItem.toString() + ";";
-                            }
-
-                        } else {
-                            for (int i = 0; i < oldScript.length; i++) {
-                                newScript += oldScript[i] + " ";
-                            }
-                        }
-
-                        curr.setScript(newScript);
-                        playSound.dismiss();
-                    }
-                });
-
-                Button cancel = playSound.getButton(AlertDialog.BUTTON_NEGATIVE);
-                cancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        playSound.dismiss();
-                    }
-                });
-            }
-        });
-
-        playSound.show();
-
-    }
-
-    private void showVisiblityDialog(final int groupPosition, final int childPosition) {
-        final AlertDialog.Builder visibilityDialog = new AlertDialog.Builder(GameEditor.this);
-        visibilityDialog.setTitle("Choose the page to " + scriptActions[childPosition] + ":");
-
-        visibilityDialog.setPositiveButton("Ok", null);
-        visibilityDialog.setNegativeButton("Cancel", null);
-
-        // TO DO: replace with the current visibility
-
-        ArrayList<Shape> allShapes = currPage.getShapes();
-
-        String[] shapeNames = new String[allShapes.size()];
-
-        for (int i = 0; i < allShapes.size(); i++) {
-            shapeNames[i] = allShapes.get(i).getName();
-        }
-
-        visibilityDialog.setSingleChoiceItems( shapeNames, 0 , new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                return;
-            }
-        });
-
-        final Shape curr = currPage.getShapes().get(selectedShape);
-
-        final AlertDialog visible = visibilityDialog.create();
-        visible.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialog) {
-                Button ok = visible.getButton(AlertDialog.BUTTON_POSITIVE);
-                ok.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        ListView lw = ((AlertDialog) visible).getListView();
-                        Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
-
-                        String script = curr.getScript();
-                        String [] oldScript;
-                        if (script != null) {
-                            oldScript = script.split(" ");
-                        } else {
-                            oldScript = null;
-                        }
-
-                        String [] trigger = triggers[groupPosition].split(" ");
-                        String newScript = "";
-                        boolean didUpdate = false;
+                        System.out.println(childPosition);
 
                         if (oldScript != null) {
                             for (int i = 0; i < oldScript.length - 3; i++) {
@@ -624,7 +537,7 @@ public class GameEditor extends AppCompatActivity {
                             if (script != null) {
                                 newScript = script + " " + triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
                             } else {
-                                newScript = triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
+                                newScript = " " + triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
                             }
 
                         } else {
@@ -634,30 +547,42 @@ public class GameEditor extends AppCompatActivity {
                         }
 
                         curr.setScript(newScript);
-                        visible.dismiss();
+
+                        triggerD.dismiss();
                     }
                 });
 
-                Button cancel = visible.getButton(AlertDialog.BUTTON_NEGATIVE);
+                Button cancel = triggerD.getButton(AlertDialog.BUTTON_NEGATIVE);
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         // do nothing
-                        visible.dismiss();
+                        triggerD.dismiss();
                     }
                 });
+
+                if (scriptActions[childPosition].equals("play")) {
+                    Button play = triggerD.getButton(AlertDialog.BUTTON_NEUTRAL);
+                    play.setOnClickListener(new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+                            ListView lw = ((AlertDialog) triggerD).getListView();
+                            Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
+                            Shape.playAudio(getApplicationContext(), checkedItem.toString());
+                        }
+                    });
+                }
             }
         });
 
-        visible.show();
-
+        triggerD.show();
     }
 
     public void showScript(View view) {
         final AlertDialog.Builder scriptDialog = new AlertDialog.Builder(GameEditor.this);
         scriptDialog.setTitle("Current script:");
 
-        // TO DO: get actual script
         final Shape curr = currPage.getShapes().get(selectedShape);
         scriptDialog.setMessage(curr.getScript());
 
@@ -731,8 +656,6 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: delete object
-                        // delete from array list
                         currPage.getShapes().remove(curr);
                         selectedShape = -1;
 
@@ -783,9 +706,7 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: delete object
-                        // remove from the arraylist
-                        // CHECK IF THERES ONLY ONE PAGE?
+                        // TODO: CHECK IF THERES ONLY ONE PAGE?
                         ArrayList<Page> allPages = Page.getPages();
                         int removed = allPages.indexOf(currPage);
                         int removedID = currPage.getPageID();
@@ -824,8 +745,6 @@ public class GameEditor extends AppCompatActivity {
 
         saveToast.show();
 
-        // TO DO: verify save
-        // loadIntoDatabaseFile
         Page.loadIntoDatabaseFile(this, gameName);
     }
 
@@ -847,9 +766,7 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: change page name
-                        // validate that it is a unique page name
-                        // verify that there are no spaces
+                        // TODO: validate that it is a unique page name, verify that there are no spaces
                         EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
 
                         currPage.setPageName(newPageName.getText().toString());
