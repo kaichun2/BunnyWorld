@@ -22,6 +22,9 @@ public class GameActivity extends AppCompatActivity {
         game = extras.getString(MainActivity.GAME_EXTRA);
         Page.loadDatabase(this, game);
 
+        Log.d("game", game);
+        Log.d("game", Page.getPages().toString());
+
         pages = Page.getPages();
         possessions = Page.getPossessions();
     }
