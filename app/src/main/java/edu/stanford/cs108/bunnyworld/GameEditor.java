@@ -281,17 +281,117 @@ public class GameEditor extends AppCompatActivity {
                         String shape = shapeSpinner.getSelectedItem().toString();
                         String other = otherSpinner.getSelectedItem().toString();
 
+                        String triggerS = triggers[groupPosition];
+                        String actionS = scriptActions[childPosition];
 
                         String script = curr.getScript();
-                        String newScript;
-
+                        String [] oldScript;
                         if (script != null) {
-                            newScript = script + " " + triggers[groupPosition] + " " + shape + " " + scriptActions[childPosition] + " " + other + ";";
+                            oldScript = script.split(" ");
                         } else {
-                            newScript = " " + triggers[groupPosition] + " " + shape + " " + scriptActions[childPosition] + " " + other + ";";
+                            oldScript = null;
                         }
 
-                        curr.setScript(newScript);
+                        String [] trigger = triggerS.split(" ");
+                        String newScript = "";
+                        boolean didUpdate = false;
+                        boolean sawTrigger = false;
+                        boolean sawShape = false;
+
+
+//                        if (oldScript != null) {
+//                            for (int i = 0; i < oldScript.length - 1; i++) {
+//                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1])) {
+//                                    sawTrigger = true;
+//                                }
+//
+//                                if (oldScript[i].equals(shape)) {
+//                                    sawShape = true;
+//                                }
+//
+//                                if (oldScript[i].contains(";")) {
+//                                    sawTrigger = false;
+//                                    sawShape = false;
+//                                }
+//
+//                                if (sawTrigger && sawShape && oldScript[i].equals(actionS)) {
+//                                    if (oldScript[i + 1].contains(";")) {
+//                                        oldScript[i + 1] = other + ";";
+//                                    } else {
+//                                        oldScript[i + 1] = other;
+//                                    }
+//
+//                                    didUpdate = true;
+//                                }
+//                            }
+//                        }
+
+                        if (!didUpdate) {
+                            if (script != null) {
+                                newScript = script + " " + triggerS + " " + shape + " " + actionS + " " + other + ";";
+                            } else {
+                                newScript = " " + triggerS + " " + shape + " " + actionS + " " + other + ";";
+                            }
+                        } else {
+                            for (int i = 0; i < oldScript.length; i++) {
+                                newScript += oldScript[i] + " ";
+                            }
+                        }
+
+                        String onClick = "on click ";
+                        String onEnter = "on enter ";
+                        String onDrop = "";
+                        Map<String, String> onDropDict = new HashMap<String, String>();
+
+                        String[] splitNewScript = newScript.split(";");
+
+                        for (int i = 0; i < splitNewScript.length; i++) {
+                            String currScript = splitNewScript[i];
+                            if (currScript.contains(triggers[0])) {
+                                int index = currScript.indexOf(triggers[0]);
+                                String portion = currScript.substring(index + triggers[0].length() + 1);
+                                onClick += portion + " ";
+                            } else if (currScript.contains(triggers[1])) {
+                                int index = currScript.indexOf(triggers[1]);
+                                String portion = currScript.substring(index + triggers[1].length() + 1);
+                                onEnter += portion + " ";
+                            } else if (currScript.contains(triggers[2])) {
+                                int indexTrigger = currScript.indexOf(triggers[2]);
+                                String portion = currScript.substring(indexTrigger + triggers[2].length() + 1);
+                                System.out.println("portion " + portion );
+
+                                String[] portionSplit = portion.split(" ");
+                                String currShape = portionSplit[0];
+                                int indexShape = portion.indexOf(currShape);
+                                System.out.println("currShape " + currShape);
+                                System.out.println(onDropDict.get(currShape));
+
+                                String correctPortion = (onDropDict.get(currShape) != null ? onDropDict.get(currShape) : "") + " " + portion.substring(indexShape + currShape.length() + 1);
+                                System.out.println("correctPortion " + correctPortion);
+
+                                onDropDict.put(currShape, correctPortion);
+                                for (String curr: onDropDict.keySet()) {
+                                    System.out.println(curr);
+                                    System.out.println(onDropDict.get(curr));
+                                }
+                            }
+                        }
+
+                        String finalScript = "";
+
+                        for (String currShape: onDropDict.keySet()) {
+                            onDrop += (onDrop.equals("") ? "" : " ") + "on drop " + currShape + onDropDict.get(currShape) + ";";
+                            System.out.println("onDrop " + onDrop);
+                        }
+                        finalScript += !onDrop.equals("") ? " " + onDrop.trim(): "";
+
+                        finalScript += !onClick.equals("on click ") ? " " + onClick.trim() + ";" : "";
+                        finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
+
+
+
+
+                        curr.setScript(finalScript.trim());
 
                         triggerD.dismiss();
                     }
@@ -509,6 +609,9 @@ public class GameEditor extends AppCompatActivity {
                         ListView lw = ((AlertDialog) triggerD).getListView();
                         Object checkedItem = lw.getAdapter().getItem(lw.getCheckedItemPosition());
 
+                        String triggerS = triggers[groupPosition];
+                        String actionS = scriptActions[childPosition];
+
                         String script = curr.getScript();
                         String [] oldScript;
                         if (script != null) {
@@ -517,16 +620,30 @@ public class GameEditor extends AppCompatActivity {
                             oldScript = null;
                         }
 
-                        String [] trigger = triggers[groupPosition].split(" ");
+                        String [] trigger = triggerS.split(" ");
                         String newScript = "";
                         boolean didUpdate = false;
+                        boolean sawTrigger = false;
 
-                        System.out.println(childPosition);
 
                         if (oldScript != null) {
-                            for (int i = 0; i < oldScript.length - 3; i++) {
-                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1]) && oldScript[i + 2].equals(scriptActions[childPosition])) {
-                                    oldScript[i + 3] = checkedItem.toString() + ";";
+                            for (int i = 0; i < oldScript.length - 1; i++) {
+                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1])) {
+                                    sawTrigger = true;
+                                }
+
+                                if (oldScript[i].contains(";")) {
+                                    sawTrigger = false;
+                                }
+
+
+
+                                if ( sawTrigger && oldScript[i].equals(actionS)) {
+                                    if (oldScript[i + 1].contains(";")) {
+                                        oldScript[i + 1] = checkedItem.toString() + ";";
+                                    } else {
+                                        oldScript[i + 1] = checkedItem.toString();
+                                    }
                                     didUpdate = true;
                                 }
                             }
@@ -535,9 +652,9 @@ public class GameEditor extends AppCompatActivity {
 
                         if (!didUpdate) {
                             if (script != null) {
-                                newScript = script + " " + triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
+                                newScript = script + " " + triggerS + " " + actionS + " " + checkedItem.toString() + ";";
                             } else {
-                                newScript = " " + triggers[groupPosition] + " " + scriptActions[childPosition] + " " + checkedItem.toString() + ";";
+                                newScript = " " + triggerS + " " + actionS + " " + checkedItem.toString() + ";";
                             }
 
                         } else {
@@ -546,7 +663,38 @@ public class GameEditor extends AppCompatActivity {
                             }
                         }
 
-                        curr.setScript(newScript);
+                        String onClick = "on click ";
+                        String onEnter = "on enter ";
+                        String onDrop = "on drop ";
+
+                        String[] splitNewScript = newScript.split(";");
+
+                        for (int i = 0; i < splitNewScript.length; i++) {
+                            String currScript = splitNewScript[i];
+                            if (currScript.contains(triggers[0])) {
+                                int index = currScript.indexOf(triggers[0]);
+                                String portion = currScript.substring(index + triggers[0].length() + 1);
+                                onClick += portion + " ";
+                            } else if (currScript.contains(triggers[1])) {
+                                int index = currScript.indexOf(triggers[1]);
+                                String portion = currScript.substring(index + triggers[1].length() + 1);
+                                onEnter += portion + " ";
+                            } else if (currScript.contains(triggers[2])) {
+                                int index = currScript.indexOf(triggers[2]);
+                                String portion = currScript.substring(index + triggers[2].length() + 1);
+                                onDrop += portion + " ";
+                            }
+                        }
+
+                        String finalScript = "";
+
+                        finalScript += !onDrop.equals("on drop ") ? " " + onDrop.trim() + ";" : "";
+                        finalScript += !onClick.equals("on click ") ? " " + onClick.trim() + ";" : "";
+                        finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
+
+
+
+                        curr.setScript(finalScript.trim());
 
                         triggerD.dismiss();
                     }
