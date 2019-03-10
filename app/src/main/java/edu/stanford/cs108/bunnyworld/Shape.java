@@ -302,7 +302,7 @@ public class Shape {
         shapeJSON.put("width", String.valueOf(width));
         shapeJSON.put("height", String.valueOf(height));
         shapeJSON.put("textObj", textObj == null ? "null" : textObj.getShapetextJSON());
-        shapeJSON.put("script", script);
+        shapeJSON.put("script", script == null ? "" : script);
 
         /* Have JSONObject parse that dictionary into a JSON format. */
         jsonObj.putAll(shapeJSON);
