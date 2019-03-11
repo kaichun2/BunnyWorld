@@ -475,6 +475,7 @@ public class GameEditor extends AppCompatActivity {
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
 
+                            // TODO: check that x and y is not out of bounds and height and width is not 0
                             curr.setX(Float.parseFloat(x_val.getText().toString()));
                             curr.setY(Float.parseFloat(y_val.getText().toString()));
 

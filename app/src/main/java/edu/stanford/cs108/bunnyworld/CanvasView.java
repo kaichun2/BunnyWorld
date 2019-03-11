@@ -28,7 +28,11 @@ public class CanvasView extends View {
     static int selectedResource;
     static int selectedShape;
     Paint blueOutlinePaint;
-    static private float xDown, yDown, offsetX = 0, offsetY = 0;
+    static private float xDown, yDown, offsetX = 0, offsetY = 0, initialHeight = 0, initialWidth = 0;
+    static String corner = "";
+
+    static float CORNER_SIZE = 5;
+    static float MINIMUM_SIZE = 30;
 
     public CanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -57,8 +61,27 @@ public class CanvasView extends View {
         for (int i = 0; i < pageShapes.size(); i++) {
             Shape curr = pageShapes.get(i);
             if (i == selectedShape) {
+
                 canvas.drawRect(curr.getX(), curr.getY(), curr.getX() + curr.getWidth(),
                         curr.getY() + curr.getHeight(), blueOutlinePaint);
+
+                // top left corner
+                canvas.drawRect(curr.getX() - CORNER_SIZE, curr.getY() - CORNER_SIZE,
+                        curr.getX() + CORNER_SIZE, curr.getY() + CORNER_SIZE, blueOutlinePaint);
+
+                // top right corner
+                canvas.drawRect(curr.getX() + curr.getWidth() - CORNER_SIZE, curr.getY() - CORNER_SIZE,
+                        curr.getX() + curr.getWidth() + CORNER_SIZE, curr.getY() + CORNER_SIZE, blueOutlinePaint);
+
+                // bottom left corner
+                canvas.drawRect(curr.getX() - CORNER_SIZE, curr.getY() + curr.getHeight() - CORNER_SIZE,
+                        curr.getX() + CORNER_SIZE, curr.getY() + curr.getHeight() + CORNER_SIZE, blueOutlinePaint);
+
+                // bottom right corner
+                canvas.drawRect(curr.getX() + curr.getWidth() - CORNER_SIZE, curr.getY() + curr.getHeight() - CORNER_SIZE,
+                        curr.getX() + curr.getWidth() + CORNER_SIZE, curr.getY() + curr.getHeight() + CORNER_SIZE, blueOutlinePaint);
+
+
             }
             curr.draw(canvas);
         }
@@ -69,6 +92,7 @@ public class CanvasView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -94,6 +118,11 @@ public class CanvasView extends View {
                     offsetX = xDown - curr.getX();
                     offsetY = yDown - curr.getY();
 
+                    initialHeight = curr.getHeight();
+                    initialWidth = curr.getWidth();
+
+                    corner = clickCorner(xDown, yDown, curr);
+
                 }
 
                 invalidate();
@@ -106,8 +135,85 @@ public class CanvasView extends View {
                     float mouseX = event.getX();
                     float mouseY = event.getY();
 
-                    curr.setX(mouseX - offsetX);
-                    curr.setY(mouseY - offsetY);
+
+                    if (corner.equals("top left corner")) {
+
+                        float newWidth = initialWidth + xDown - mouseX;
+                        float newHeight = initialHeight + yDown - mouseY;
+
+
+                        if (newWidth < MINIMUM_SIZE) {
+                            curr.setWidth(MINIMUM_SIZE);
+                        } else {
+                            curr.setWidth(newWidth);
+                            curr.setX(mouseX);
+                        }
+
+                        if (newHeight < MINIMUM_SIZE) {
+                            curr.setHeight(MINIMUM_SIZE);
+                        } else {
+                            curr.setHeight(newHeight);
+                            curr.setY(mouseY);
+                        }
+
+                    } else if (corner.equals("bottom left corner")) {
+                        float newWidth = initialWidth + xDown - mouseX;
+                        float newHeight = initialHeight + mouseY - yDown;
+
+                        if (newWidth < MINIMUM_SIZE) {
+                            curr.setWidth(MINIMUM_SIZE);
+                        } else {
+                            curr.setWidth(newWidth);
+                            curr.setX(mouseX);
+                        }
+
+                        if (newHeight < MINIMUM_SIZE) {
+                            curr.setHeight(MINIMUM_SIZE);
+                        } else {
+                            curr.setHeight(newHeight);
+                            curr.setY(mouseY - newHeight);
+                        }
+
+                    } else if (corner.equals("top right corner")) {
+                        float newWidth = initialWidth + mouseX - xDown;
+                        float newHeight = initialHeight + yDown - mouseY;
+
+                        if (newWidth < MINIMUM_SIZE) {
+                            curr.setWidth(MINIMUM_SIZE);
+                        } else {
+                            curr.setWidth(newWidth);
+                            curr.setX(mouseX - newWidth);
+                        }
+
+                        if (newHeight < MINIMUM_SIZE) {
+                            curr.setHeight(MINIMUM_SIZE);
+                        } else {
+                            curr.setHeight(newHeight);
+                            curr.setY(mouseY);
+                        }
+
+                    } else if (corner.equals("bottom right corner")) {
+                        float newWidth = initialWidth + mouseX - xDown;
+                        float newHeight = initialHeight + mouseY - yDown;
+
+                        if (newWidth < MINIMUM_SIZE) {
+                            curr.setWidth(MINIMUM_SIZE);
+                        } else {
+                            curr.setWidth(newWidth);
+                            curr.setX(mouseX - newWidth);
+                        }
+
+                        if (newHeight < MINIMUM_SIZE) {
+                            curr.setHeight(MINIMUM_SIZE);
+                        } else {
+                            curr.setHeight(newHeight);
+                            curr.setY(mouseY - newHeight);
+                        }
+
+                    } else {
+                        curr.setX(mouseX - offsetX);
+                        curr.setY(mouseY - offsetY);
+                    }
 
                     invalidate();
 
@@ -116,6 +222,37 @@ public class CanvasView extends View {
         }
 
         return true;
+    }
+
+    String clickCorner(float x, float y, Shape curr) {
+
+        float shapeX = curr.getX();
+        float shapeY = curr.getY();
+        float shapeWidth = curr.getWidth();
+        float shapeHeight = curr.getHeight();
+
+        // left corners
+        if ( x >= shapeX - CORNER_SIZE && x <= shapeX + CORNER_SIZE ) {
+            // top and bottom corners
+            if (y >= shapeY - CORNER_SIZE && y <= shapeY + CORNER_SIZE) {
+                return "top left corner";
+            } else if (y >= shapeY + shapeHeight - CORNER_SIZE && y <= shapeY + shapeHeight + CORNER_SIZE) {
+                return "bottom left corner";
+            }
+        }
+
+        // right corners
+        if ( x >= shapeX + shapeWidth - CORNER_SIZE && x <= shapeX + shapeWidth + CORNER_SIZE ) {
+            // top and bottom corners
+            if (y >= shapeY - CORNER_SIZE && y <= shapeY + CORNER_SIZE) {
+                return "top right corner";
+            } else if (y >= shapeY + shapeHeight - CORNER_SIZE && y <= shapeY + shapeHeight + CORNER_SIZE) {
+                return "bottom right corner";
+            }
+        }
+
+        return "not corner";
+
     }
 
     static public void setSelectedResource(int resourceId) {
@@ -190,7 +327,7 @@ public class CanvasView extends View {
             float bottom = top + curr.getHeight();
 
 
-            if (xDown >= left && xDown <= right && yDown >= top && yDown <= bottom) {
+            if (xDown >= left - CORNER_SIZE && xDown <= right + CORNER_SIZE && yDown >= top - CORNER_SIZE && yDown <= bottom + CORNER_SIZE) {
                 selectedShape = i;
 
                 System.out.println(curr.getImgName());
