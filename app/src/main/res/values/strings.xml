@@ -33,6 +33,8 @@
     <string name="choose_shape">Choose shape:</string>
     <string name="on_drop">on drop</string>
     <string name="restart">RESTART</string>
+    <string name="error_status">Error Status:</string>
+    <string name="check_errors">Check Errors</string>
     <string-array name="location_array">
         <item>Show Right</item>
         <item>Show Left</item>
