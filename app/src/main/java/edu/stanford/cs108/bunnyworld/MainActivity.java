@@ -3,14 +3,19 @@ package edu.stanford.cs108.bunnyworld;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.*;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.graphics.Color;
 
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.*;
 import android.view.View;
-
+import android.text.style.*;
 import java.util.ArrayList;
 
 import static android.content.DialogInterface.BUTTON_NEGATIVE;
@@ -23,12 +28,22 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String GAME_EXTRA = "game";
     public static final String IS_CREATE = "is_create";
+    private int backgrdImgIndex = 1;
+    private int[] color = new int[]{Color.RED,Color.GREEN,Color.BLUE,Color.CYAN,Color.GRAY,Color.MAGENTA,Color.YELLOW,Color.BLACK};
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        TextView textView = (TextView) findViewById(R.id.title);
+        SpannableString title = new SpannableString("Bunny World");
+        title.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), 0, title.length(), 0);
+        for(int i = 0; i < title.length(); i++) {
+            title.setSpan(new ForegroundColorSpan(color[i % color.length]), i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        textView.setText(title);
         putRawFilesIntoInternalAndroidStorage();
         updateGames();
     }
@@ -52,6 +67,24 @@ public class MainActivity extends AppCompatActivity {
         Page.getPages().clear();
         Shape.getAllShapes().clear();
         Page.getPossessions().clear();
+    }
+
+    public void change_background(View view) {
+        LinearLayout background = (LinearLayout) findViewById(R.id.background);
+        int img = 0;
+        if (backgrdImgIndex == 0) {
+            img = R.drawable.bunny;
+        } else if (backgrdImgIndex == 1) {
+            img = R.drawable.bunny1;
+        } else if (backgrdImgIndex == 2) {
+            img = R.drawable.bunny2;
+        } else if (backgrdImgIndex == 3) {
+            img = R.drawable.bunny3;
+        } else {
+            img = R.drawable.bunny4;
+        }
+        backgrdImgIndex = backgrdImgIndex != 4 ? backgrdImgIndex + 1 : 0;
+        background.setBackgroundResource(img);
     }
 
 
