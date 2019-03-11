@@ -51,6 +51,7 @@ public class GameEditor extends AppCompatActivity {
     private String triggers[] = {"on click", "on enter", "on drop", "property" };
     private String scriptActions[] = {"goto", "play", "hide", "show"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
+    String isError = "unchecked";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +148,16 @@ public class GameEditor extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_game_editor, menu);
 
+        MenuItem errorButton = menu.findItem(R.id.error_button);
+        Button error = (Button) errorButton.getActionView();
+        error.setText(R.string.check_errors);
+        error.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                runErrorTest();
+            }
+        });
+
         MenuItem propertyItem = menu.findItem(R.id.right_panel_visibility);
         Spinner propertiesSpinner = (Spinner) propertyItem.getActionView();
 
@@ -186,6 +197,21 @@ public class GameEditor extends AppCompatActivity {
         });
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        MenuItem errorIcon = menu.findItem(R.id.error_icon);
+        if (isError.equals("unchecked")) {
+            errorIcon.setIcon(R.drawable.ic_refresh_black_24dp);
+        } else if (isError.equals("errors")) {
+            errorIcon.setIcon(R.drawable.ic_error_black_24dp);
+        } else if (isError.equals("no errors")) {
+            errorIcon.setIcon(R.drawable.ic_check_circle_black_24dp);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private void drawResources(Map<String, BitmapDrawable> resources) {
@@ -285,57 +311,13 @@ public class GameEditor extends AppCompatActivity {
                         String actionS = scriptActions[childPosition];
 
                         String script = curr.getScript();
-                        String [] oldScript;
+
+                        String newScript;
+
                         if (script != null) {
-                            oldScript = script.split(" ");
+                            newScript = script + " " + triggerS + " " + shape + " " + actionS + " " + other + ";";
                         } else {
-                            oldScript = null;
-                        }
-
-                        String [] trigger = triggerS.split(" ");
-                        String newScript = "";
-                        boolean didUpdate = false;
-                        boolean sawTrigger = false;
-                        boolean sawShape = false;
-
-
-//                        if (oldScript != null) {
-//                            for (int i = 0; i < oldScript.length - 1; i++) {
-//                                if (oldScript[i].equals(trigger[0]) && oldScript[i + 1].equals(trigger[1])) {
-//                                    sawTrigger = true;
-//                                }
-//
-//                                if (oldScript[i].equals(shape)) {
-//                                    sawShape = true;
-//                                }
-//
-//                                if (oldScript[i].contains(";")) {
-//                                    sawTrigger = false;
-//                                    sawShape = false;
-//                                }
-//
-//                                if (sawTrigger && sawShape && oldScript[i].equals(actionS)) {
-//                                    if (oldScript[i + 1].contains(";")) {
-//                                        oldScript[i + 1] = other + ";";
-//                                    } else {
-//                                        oldScript[i + 1] = other;
-//                                    }
-//
-//                                    didUpdate = true;
-//                                }
-//                            }
-//                        }
-
-                        if (!didUpdate) {
-                            if (script != null) {
-                                newScript = script + " " + triggerS + " " + shape + " " + actionS + " " + other + ";";
-                            } else {
-                                newScript = " " + triggerS + " " + shape + " " + actionS + " " + other + ";";
-                            }
-                        } else {
-                            for (int i = 0; i < oldScript.length; i++) {
-                                newScript += oldScript[i] + " ";
-                            }
+                            newScript = " " + triggerS + " " + shape + " " + actionS + " " + other + ";";
                         }
 
                         String onClick = "on click ";
@@ -387,8 +369,6 @@ public class GameEditor extends AppCompatActivity {
 
                         finalScript += !onClick.equals("on click ") ? " " + onClick.trim() + ";" : "";
                         finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
-
-
 
 
                         curr.setScript(finalScript.trim());
@@ -889,11 +869,24 @@ public class GameEditor extends AppCompatActivity {
 
     public void savePage(MenuItem item) {
 
-        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
+        if (isError.equals("no errors")) {
+            Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
 
-        saveToast.show();
+            saveToast.show();
 
-        Page.loadIntoDatabaseFile(this, gameName);
+            Page.loadIntoDatabaseFile(this, gameName);
+        } else if (isError.equals("errors")) {
+            Toast errorToast = Toast.makeText(getApplicationContext(), "Unable to save due to errors", Toast.LENGTH_SHORT);
+
+            errorToast.show();
+        } else if (isError.equals("unchecked")) {
+            Toast testToast = Toast.makeText(getApplicationContext(), "Please run the test before saving", Toast.LENGTH_SHORT);
+
+            testToast.show();
+        }
+
+
+
     }
 
     public void editPageName(MenuItem item) {
@@ -955,5 +948,31 @@ public class GameEditor extends AppCompatActivity {
         resetToast.show();
 
         curr.setScript("");
+    }
+
+    public void runErrorTest() {
+        String[] pageNames = getPageNames();
+        String[] shapeNames = getShapeNames();
+
+        ArrayList<String> scripts = new ArrayList<String>();
+
+        ArrayList<Page> allPages = Page.getPages();
+
+        for (int i = 0; i < allPages.size(); i++) {
+
+        }
+
+        isError = "unchecked";
+
+
+        invalidateOptionsMenu();
+
+        // TODO: LUIS & TASSICA
+        // should we check all the pages and shapes in all the pages
+        // or only check each individual page
+        // the problem is that if they are on a page with no problems they can save
+        // even if there are other pages with errors
+        // because rn the save fxn saves the entire game, not just a single page
+        // also for all  changes (i.e. changing names, deleting, editing, etc) change isError to unchecked and call invalidateOptionsMenu
     }
 }

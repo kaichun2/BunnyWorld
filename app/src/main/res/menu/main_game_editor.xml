@@ -6,6 +6,29 @@
     >
 
     <item
+        android:title="@string/error_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:showAsAction="always"
+        />
+
+    <item
+        android:id="@+id/error_icon"
+        android:title=""
+        android:icon="@drawable/ic_refresh_black_24dp"
+        app:showAsAction="always"
+        />
+
+    <item
+        android:id="@+id/error_button"
+        android:title="@string/check_errors"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:actionViewClass="android.widget.Button"
+        app:showAsAction="always"
+        />
+
+    <item
         android:title="@string/properties_panel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
