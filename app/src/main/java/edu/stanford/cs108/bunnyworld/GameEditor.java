@@ -1094,4 +1094,21 @@ public class GameEditor extends AppCompatActivity {
         invalidateOptionsMenu();
         return invalidStates;
     }
+
+
+    // TODO rena (note that you need the menuItem argument for
+    // this to be registered as an onClick but you don't actually
+    // have to do anything with it!)
+    public void copyShape(MenuItem menuItem) {
+
+    }
+
+    public void cutShape(MenuItem menuItem) {
+
+    }
+
+    public void pasteShape(MenuItem menuItem) {
+
+    }
+
 }

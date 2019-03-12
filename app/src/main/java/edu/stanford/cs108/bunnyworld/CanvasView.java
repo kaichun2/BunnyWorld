@@ -357,4 +357,18 @@ public class CanvasView extends View {
     }
 
 
+
+    public void copyShape(View view) {
+
+    }
+
+    public void cutShape(View view) {
+
+    }
+
+    public void pasteShape(View view) {
+
+    }
+
+
 }

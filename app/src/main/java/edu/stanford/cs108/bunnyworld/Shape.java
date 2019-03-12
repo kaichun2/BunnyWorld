@@ -420,7 +420,7 @@ public class Shape {
      * coordinates be locked to directly above the image, similar to how RPG games lock
      * a name text over a character.
      */
-    public class ShapeText { // TODO: extra: maybe ivar for text color?
+    public class ShapeText {
         private float xLoc, yLoc;
         private int fontSize; // sp
         private String text;
@@ -441,12 +441,14 @@ public class Shape {
             bold = false;
             italic = false;
             underline = false;
+            color = Color.BLACK; //  TODO use this in draw (i think black was default before)
+            Log.d("dog12", String.valueOf(Color.BLACK));
 
         }
 
         /* Optional constructor for ShapeText that uses default customizations. */
         /* Use this for basic functionality design. textObj.setFontSize(num) as well. */
-        public ShapeText(String text) {
+        public ShapeText(String text) { // xLoc = x, yLoc = y, always now
             xLoc = x;
             yLoc = y;
             fontSize = 36;
@@ -455,6 +457,7 @@ public class Shape {
             bold = false;
             italic = false;
             underline = false;
+            color = Color.BLACK; //  TODO use this in draw
         }
 
         // text also only draws itself if outer object is visible
@@ -462,9 +465,6 @@ public class Shape {
             if (isVisible) {
                 textPaint.setColor(Color.WHITE);
                 textPaint.setStyle(Paint.Style.FILL);
-
-
-
                 textPaint.setColor(Color.BLACK);
                 textPaint.setTextSize(fontSize);
 
@@ -472,7 +472,6 @@ public class Shape {
                 if (italic) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                 if (underline) textPaint.setUnderlineText(true);
 
-                // TODO: changed xLoc to x and yLoc to y
                 canvas.drawText(text, x, y + fontSize, textPaint);
             }
         }
@@ -487,11 +486,13 @@ public class Shape {
 
         /* Getters and setters. */
 
-        public boolean getBold() {return bold;}
+        public boolean getBold() { return bold; }
 
-        public boolean getItalic() {return italic;}
+        public boolean getItalic() { return italic; }
 
-        public boolean getUnderline() {return underline;}
+        public boolean getUnderline() { return underline; }
+
+        public int getColor() { return color; }
 
         public float getX() { return xLoc; }
 
@@ -511,6 +512,11 @@ public class Shape {
             shapeTextJSON.put("yLoc", String.valueOf(yLoc));
             shapeTextJSON.put("text", text);
             shapeTextJSON.put("fontSize", String.valueOf(fontSize));
+            shapeTextJSON.put("bold", bold ? "true" : "false");
+            shapeTextJSON.put("italic", italic ? "true" : "false");
+            shapeTextJSON.put("underline", underline ? "true" : "false");
+            shapeTextJSON.put("color", String.valueOf(color));
+
 
             /* Have JSONObject parse that dictionary into a JSON format. */
             jsonObj.putAll(shapeTextJSON);
@@ -518,11 +524,13 @@ public class Shape {
             return Page.prettyPrintJSON(jsonObj);
         }
 
-        public void setBold(boolean b) {bold = b;}
+        public void setBold(boolean b) { bold = b; }
 
-        public void setItalic(boolean i) {italic = i;}
+        public void setItalic(boolean i) { italic = i; }
 
-        public void setUnderline(boolean u) {underline = u;}
+        public void setUnderline(boolean u) { underline = u; }
+
+        public void setColor(int col) { color = col; }
 
         public void setX(float newX) { this.xLoc = newX; }
 
