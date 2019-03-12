@@ -1096,26 +1096,34 @@ public class GameEditor extends AppCompatActivity {
     public void changeBackground(MenuItem item) {
         switch(item.getItemId()) {
             case (R.id.redbg):
-                currPage.setBackgroundImage("redsquare");
+                System.out.println("red clicked bishhh");
+                currPage.setBackgroundImage("redsquare.png");
+                break;
                 // do red background
             case (R.id.orangebg):
                 // do orange background
-                currPage.setBackgroundImage("orangesquare");
+                currPage.setBackgroundImage("orangesquare.png");
+                break;
             case (R.id.yellowbg):
-                currPage.setBackgroundImage("yellowsquare");
+                currPage.setBackgroundImage("yellowsquare.jpg");
+                break;
                 // do yellow bg
             case (R.id.greenbg):
-                currPage.setBackgroundImage("greensquare");
+                currPage.setBackgroundImage("greensquare.png");
+                break;
                 // do green bg
             case (R.id.bluebg):
                 // do blue background
-                currPage.setBackgroundImage("bluesquare");
+                currPage.setBackgroundImage("bluesquare.png");
+                break;
             case (R.id.purplebg):
-                currPage.setBackgroundImage("purplesquare");
+                currPage.setBackgroundImage("purplesquare.png");
+                System.out.println("always purple?");
+                break;
                 // do purple bg
+            default:
+                currPage.setBackgroundImage("");
         }
-
-        // update background in JSON file??
 
         Toast toast = Toast.makeText(getApplicationContext(), "The background has been set!", Toast.LENGTH_SHORT);
         toast.show();

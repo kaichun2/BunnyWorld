@@ -43,6 +43,7 @@ public class Page {
     private int pageID;               /* Sequential Page ID. (May be useful later for extensions. */
     private ArrayList<Shape> shapes;  /* List of all shapes associated with this page. */
     private String backgroundImage;   /* Background image for current page. */
+    private HashMap<String, Integer> backgroundMap; /* Maps background images to their drawables. */
 
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
@@ -65,7 +66,9 @@ public class Page {
         this.pageName = pageName;
         this.pageID = pageID;
         this.shapes = shapes;
+        backgroundMap = new HashMap<String, Integer>();
         allPages.add(this);
+        loadBackgroundImages();
     }
 
     // a default constructor -> don't add to allPages
@@ -102,7 +105,24 @@ public class Page {
 
     public String getBackgroundImage() { return backgroundImage; }
 
+    public Integer getImage(String image) {
+        if (backgroundMap.containsKey(image)) {
+            return backgroundMap.get(image);
+        } else {
+            return -1;
+        }
+    }
+
     public void setBackgroundImage(String imgStr) { backgroundImage = imgStr; }
+
+    private void loadBackgroundImages() {
+        backgroundMap.put("redsquare.png", R.drawable.redsquare);
+        backgroundMap.put("orangesquare.png", R.drawable.orangesquare);
+        backgroundMap.put("yellowsquare.jpg", R.drawable.yellowsquare);
+        backgroundMap.put("greensquare.png", R.drawable.greensquare);
+        backgroundMap.put("bluesquare.png", R.drawable.bluesquare);
+        backgroundMap.put("purplesquare.png", R.drawable.purplesquare);
+    }
 
     public static ArrayList<Shape> getPossessions() { return possessions; }
 
