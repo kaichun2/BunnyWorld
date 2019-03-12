@@ -163,21 +163,26 @@ public class MainActivity extends AppCompatActivity {
                         String newGame = newGameName.getText().toString();
 
                         // pass intent if valid
-                        if (!newGame.equals(Page.GAME_NAMES_FILE) && !hasElem(newGame)) {
+                        if (!newGame.equals(Page.GAME_NAMES_FILE) && !hasElem(newGame) && !newGame.contains(" ") && !newGame.equals("")) {
+                            TextView errorMessage = ((AlertDialog) createGame).findViewById(R.id.error_message);
+                            errorMessage.setVisibility(v.GONE);
                             Intent pageDirectoryIntent = new Intent(getApplicationContext(), PageDirectory.class);
                             pageDirectoryIntent.putExtra(GAME_EXTRA, newGame);
                             pageDirectoryIntent.putExtra(IS_CREATE, true);
                             startActivity(pageDirectoryIntent);
                             createGame.dismiss();
                         } else {
+                            TextView errorMessage = ((AlertDialog) createGame).findViewById(R.id.error_message);
+                            errorMessage.setVisibility(v.VISIBLE);
 
-                            // TODO - TASSICA - make this show up, edit stuff in xml file
-
-                            // error handling
-                            if (newGame.equals(Page.GAME_NAMES_FILE)) {
-                                createGame.setMessage("Please choose a different game name.");
+                            if (newGame.contains(" ")) {
+                                errorMessage.setText("Game names cannot have spaces.");
+                            } else if (newGame.equals(Page.GAME_NAMES_FILE)) {
+                                errorMessage.setText("Please choose a different game name.");
+                            } else if (newGame.equals("")) {
+                                errorMessage.setText("Game names cannot be empty.");
                             } else {
-                                createGame.setMessage("Game with that name already exists.");
+                                errorMessage.setText("Game with that name already exists.");
                             }
                         }
 

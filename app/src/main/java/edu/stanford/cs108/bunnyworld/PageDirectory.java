@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Intent;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class PageDirectory extends AppCompatActivity {
@@ -120,18 +121,31 @@ public class PageDirectory extends AppCompatActivity {
                         // validate that it is a unique page name
                         // verify that there are no spaces
                         EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
+                        String name = newPageName.getText().toString();
 
-                        Page newPage = new Page(newPageName.getText().toString(), pages.size() + 1, new ArrayList<Shape>());
+                        if (!pageExists(name) && !name.contains(" ") && !name.equals("")) {
+                            Page newPage = new Page(name, pages.size() + 1, new ArrayList<Shape>());
 
-                        drawPages();
+                            drawPages();
 
-                        Intent gameEditorIntent = new Intent(getApplicationContext(), GameEditor.class);
-                        gameEditorIntent.putExtra(PAGE_ID, newPage.getPageID());
-                        gameEditorIntent.putExtra(GAME, gameName);
-                        startActivity(gameEditorIntent);
+                            Intent gameEditorIntent = new Intent(getApplicationContext(), GameEditor.class);
+                            gameEditorIntent.putExtra(PAGE_ID, newPage.getPageID());
+                            gameEditorIntent.putExtra(GAME, gameName);
+                            startActivity(gameEditorIntent);
 
+                            pageName.dismiss();
+                        } else {
+                            TextView errorMessage = ((AlertDialog) pageName).findViewById(R.id.error_message);
+                            errorMessage.setVisibility(v.VISIBLE);
 
-                        pageName.dismiss();
+                            if (pageExists(name)) {
+                                errorMessage.setText("Page with that name already exists.");
+                            } else if (name.contains(" ")) {
+                                errorMessage.setText("Page names cannot have spaces.");
+                            } else if (name.equals("")) {
+                                errorMessage.setText("Page names cannot be empty.");
+                            }
+                        }
                     }
                 });
 
@@ -147,6 +161,17 @@ public class PageDirectory extends AppCompatActivity {
         });
 
         pageName.show();
+    }
+
+    private boolean pageExists(String page) {
+        ArrayList<Page> allPages = Page.getPages();
+        for (Page p : allPages) {
+            if (page.equals(p.getPageName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void drawPages() {

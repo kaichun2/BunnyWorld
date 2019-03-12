@@ -11,7 +11,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -35,11 +37,21 @@ public class CanvasView extends View {
     static float CORNER_SIZE = 5;
     static float MINIMUM_SIZE = 30;
 
+    static float RESOURCE_BOUNDARY = 0;
+    static float RESOURCE_OFFSET = 30;
+    static int actionBarHeight;
+
+    static int windowWidth = 0, windowHeight = 0;
+
     public CanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         pageShapes = null;
         selectedShape = -1;
+
+        TypedValue tv = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true);
+        actionBarHeight = getResources().getDimensionPixelSize(tv.resourceId);
 
         init();
     }
@@ -49,6 +61,8 @@ public class CanvasView extends View {
         blueOutlinePaint.setColor(Color.BLUE);
         blueOutlinePaint.setStyle(Paint.Style.STROKE);
         blueOutlinePaint.setStrokeWidth(5.0f);
+
+
     }
 
     @Override
@@ -56,8 +70,15 @@ public class CanvasView extends View {
         super.onDraw(canvas);
         addBackground(canvas);
 
-        if(pageShapes == null) {
+        if (pageShapes == null) {
             pageShapes = GameEditor.getCurrPage().getShapes();
+        }
+
+        if (RESOURCE_BOUNDARY == 0 && windowHeight != 0) {
+
+
+            RESOURCE_BOUNDARY = windowHeight * 3.0f / 4.0f - actionBarHeight - RESOURCE_OFFSET;
+            System.out.println("boundary " + RESOURCE_BOUNDARY);
         }
 
         for (int i = 0; i < pageShapes.size(); i++) {
@@ -138,83 +159,102 @@ public class CanvasView extends View {
                     float mouseY = event.getY();
 
 
-                    if (corner.equals("top left corner")) {
+                    if (corner.equals("top left corner") && !curr.getImgName().equals("texticon")) {
 
                         float newWidth = initialWidth + xDown - mouseX;
                         float newHeight = initialHeight + yDown - mouseY;
 
+                        if (mouseX > 0 && mouseY > 0) {
+                            if (newWidth < MINIMUM_SIZE) {
+                                curr.setWidth(MINIMUM_SIZE);
+                            } else {
+                                curr.setWidth(newWidth);
+                                curr.setX(mouseX);
+                            }
 
-                        if (newWidth < MINIMUM_SIZE) {
-                            curr.setWidth(MINIMUM_SIZE);
-                        } else {
-                            curr.setWidth(newWidth);
-                            curr.setX(mouseX);
+                            if (newHeight < MINIMUM_SIZE) {
+                                curr.setHeight(MINIMUM_SIZE);
+                            } else {
+                                curr.setHeight(newHeight);
+                                curr.setY(mouseY);
+                            }
                         }
 
-                        if (newHeight < MINIMUM_SIZE) {
-                            curr.setHeight(MINIMUM_SIZE);
-                        } else {
-                            curr.setHeight(newHeight);
-                            curr.setY(mouseY);
-                        }
-
-                    } else if (corner.equals("bottom left corner")) {
+                    } else if (corner.equals("bottom left corner") && !curr.getImgName().equals("texticon")) {
                         float newWidth = initialWidth + xDown - mouseX;
                         float newHeight = initialHeight + mouseY - yDown;
 
-                        if (newWidth < MINIMUM_SIZE) {
-                            curr.setWidth(MINIMUM_SIZE);
-                        } else {
-                            curr.setWidth(newWidth);
-                            curr.setX(mouseX);
+                        if (mouseX > 0 && mouseY < RESOURCE_BOUNDARY) {
+                            if (newWidth < MINIMUM_SIZE) {
+                                curr.setWidth(MINIMUM_SIZE);
+                            } else {
+                                curr.setWidth(newWidth);
+                                curr.setX(mouseX);
+                            }
+
+                            if (newHeight < MINIMUM_SIZE) {
+                                curr.setHeight(MINIMUM_SIZE);
+                            } else {
+                                curr.setHeight(newHeight);
+                                curr.setY(mouseY - newHeight);
+                            }
                         }
 
-                        if (newHeight < MINIMUM_SIZE) {
-                            curr.setHeight(MINIMUM_SIZE);
-                        } else {
-                            curr.setHeight(newHeight);
-                            curr.setY(mouseY - newHeight);
-                        }
-
-                    } else if (corner.equals("top right corner")) {
+                    } else if (corner.equals("top right corner") && !curr.getImgName().equals("texticon")) {
                         float newWidth = initialWidth + mouseX - xDown;
                         float newHeight = initialHeight + yDown - mouseY;
 
-                        if (newWidth < MINIMUM_SIZE) {
-                            curr.setWidth(MINIMUM_SIZE);
-                        } else {
-                            curr.setWidth(newWidth);
-                            curr.setX(mouseX - newWidth);
+                        if (mouseX < windowWidth && mouseY > 0) {
+                            if (newWidth < MINIMUM_SIZE) {
+                                curr.setWidth(MINIMUM_SIZE);
+                            } else {
+                                curr.setWidth(newWidth);
+                                curr.setX(mouseX - newWidth);
+                            }
+
+                            if (newHeight < MINIMUM_SIZE) {
+                                curr.setHeight(MINIMUM_SIZE);
+                            } else {
+                                curr.setHeight(newHeight);
+                                curr.setY(mouseY);
+                            }
                         }
 
-                        if (newHeight < MINIMUM_SIZE) {
-                            curr.setHeight(MINIMUM_SIZE);
-                        } else {
-                            curr.setHeight(newHeight);
-                            curr.setY(mouseY);
-                        }
-
-                    } else if (corner.equals("bottom right corner")) {
+                    } else if (corner.equals("bottom right corner") && !curr.getImgName().equals("texticon")) {
                         float newWidth = initialWidth + mouseX - xDown;
                         float newHeight = initialHeight + mouseY - yDown;
 
-                        if (newWidth < MINIMUM_SIZE) {
-                            curr.setWidth(MINIMUM_SIZE);
-                        } else {
-                            curr.setWidth(newWidth);
-                            curr.setX(mouseX - newWidth);
-                        }
+                        if (mouseX < windowWidth && mouseY < RESOURCE_BOUNDARY) {
+                            if (newWidth < MINIMUM_SIZE) {
+                                curr.setWidth(MINIMUM_SIZE);
+                            } else {
+                                curr.setWidth(newWidth);
+                                curr.setX(mouseX - newWidth);
+                            }
 
-                        if (newHeight < MINIMUM_SIZE) {
-                            curr.setHeight(MINIMUM_SIZE);
-                        } else {
-                            curr.setHeight(newHeight);
-                            curr.setY(mouseY - newHeight);
+                            if (newHeight < MINIMUM_SIZE) {
+                                curr.setHeight(MINIMUM_SIZE);
+                            } else {
+                                curr.setHeight(newHeight);
+                                curr.setY(mouseY - newHeight);
+                            }
                         }
 
                     } else {
-                        curr.setX(mouseX - offsetX);
-                        curr.setY(mouseY - offsetY);
+                        float newX = mouseX - offsetX;
+                        float newY = mouseY - offsetY;
+
+                        float currWidth = curr.getWidth();
+                        float currHeight = curr.getHeight();
+
+                        if (newX >= 0 && (newX + currWidth) <= windowWidth) {
+                            curr.setX(mouseX - offsetX);
+                        }
+
+                        if (newY >= 0 && (newY + currHeight) <= RESOURCE_BOUNDARY) {
+                            curr.setY(mouseY - offsetY);
+                        }
+
                     }
 
                     invalidate();
@@ -265,17 +305,50 @@ public class CanvasView extends View {
         selectedShape = shapeId;
     }
 
+    static public void setWindowHeight(int height) {
+        windowHeight = height;
+    }
+
+    static public void setWindowWidth(int width) {
+        windowWidth = width;
+    }
+
     private void createShape(View resource, float xDown, float yDown) {
         resource.setBackgroundColor(getResources().getColor(R.color.light_grey));
 
         Shape newShape = new Shape();
         newShape.setName(getResources().getString(R.string.shape) + (Shape.getAllShapes().size() + 1));
 
-        int width = resource.getWidth();
-        newShape.setX(xDown - width/2);
 
+
+        int width = resource.getWidth();
         int height = resource.getHeight();
-        newShape.setY(yDown - height/2);
+
+        float newX = xDown - width/2;
+        float newY = yDown - height/2;
+
+        if (newX >= 0 && newX + width <= windowWidth) {
+            newShape.setX(newX);
+        } else {
+            if (newX < 0) {
+                newShape.setX(0);
+            } else {
+                newShape.setX(windowWidth - width);
+            }
+
+        }
+
+        if (newY >= 0 && newY + height <= RESOURCE_BOUNDARY) {
+            newShape.setY(newY);
+        } else {
+            if (newY < 0) {
+                newShape.setY(0);
+            } else {
+                newShape.setY(RESOURCE_BOUNDARY - height);
+            }
+        }
+
+
 
         newShape.setWidth(width);
         newShape.setHeight(height);
@@ -287,10 +360,34 @@ public class CanvasView extends View {
         if (imgName.equals("texticon")) {
             newShape.setShapeText(getResources().getString(R.string.default_text_message));
             newShape.setHeight(newShape.getShapeText().getFontSize());
-            // TO DO: get actual width
             newShape.setWidth(newShape.getText().length() * newShape.getShapeText().getFontSize() / 2);
-            newShape.setX(xDown - newShape.getWidth() / 2);
-            newShape.setY(yDown - newShape.getHeight() / 2);
+
+            float shapeWidth = newShape.getWidth();
+            float shapeHeight = newShape.getHeight();
+
+            float shapeX = xDown - newShape.getWidth() / 2;
+            float shapeY = yDown - newShape.getHeight() / 2;
+
+            if (shapeX >= 0 && shapeX + shapeWidth <= windowWidth) {
+                newShape.setX(shapeX);
+            } else {
+                if (newX < 0) {
+                    newShape.setX(0);
+                } else {
+                    newShape.setX(windowWidth - shapeWidth);
+                }
+
+            }
+
+            if (shapeY >= 0 && shapeY + shapeHeight <= RESOURCE_BOUNDARY) {
+                newShape.setY(shapeY);
+            } else {
+                if (newY < 0) {
+                    newShape.setY(0);
+                } else {
+                    newShape.setY(RESOURCE_BOUNDARY - shapeHeight);
+                }
+            }
         }
 
         newShape.setImgName(resource.getTag().toString());
@@ -362,13 +459,25 @@ public class CanvasView extends View {
         // the page stores the background image in a string
         String backgroundImage = GameEditor.getCurrPage().getBackgroundImage();
         if (backgroundImage.equals("")) return;
-        System.out.println("Setting background: " + backgroundImage);
+        //System.out.println("Setting background: " + backgroundImage);
         int imageFile = GameEditor.getCurrPage().getImage(backgroundImage);
         if (imageFile != -1) {
-            System.out.println("image file: " + imageFile);
+            //System.out.println("image file: " + imageFile);
             Drawable draw = getResources().getDrawable(imageFile);
             draw.setBounds(0, 0, getWidth(), getHeight());
             draw.draw(canvas);
         }
+    }
+
+    public void copyShape(View view) {
+
+    }
+
+    public void cutShape(View view) {
+
+    }
+
+    public void pasteShape(View view) {
+
     }
 }

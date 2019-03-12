@@ -23,7 +23,11 @@
             "xLoc" : "450",
             "yLoc" : "100",
             "fontSize" : "50",
-            "text" : "Bunny World!"
+            "text" : "Bunny World!",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : ""
         },
@@ -42,7 +46,11 @@
             "xLoc" : "200",
             "yLoc" : "150",
             "fontSize" : "40",
-            "text" : "You are in a maze of twisty little passages, all alike"
+            "text" : "You are in a maze of twisty little passages, all alike",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : ""
         },
@@ -121,7 +129,11 @@
             "xLoc" : "100",
             "yLoc" : "500",
             "fontSize" : "40",
-            "text" : "Eek! Fire-Room. Run away!"
+            "text" : "Eek! Fire-Room. Run away!",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : ""
         },
@@ -187,7 +199,11 @@
             "xLoc" : "120",
             "yLoc" : "400",
             "fontSize" : "50",
-            "text" : "Mystic Bunny- Rub my tummy for a big surprise!"
+            "text" : "Mystic Bunny- Rub my tummy for a big surprise!",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : ""
         },
@@ -240,7 +256,11 @@
             "xLoc" : "250",
             "yLoc" : "500",
             "fontSize" : "50",
-            "text" : "You must appease the Bunny of Death!"
+            "text" : "You must appease the Bunny of Death!",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : ""
         },
@@ -280,7 +300,11 @@
             "xLoc" : "450",
             "yLoc" : "500",
             "fontSize" : "50",
-            "text" : "You Win! Yay!"
+            "text" : "You Win! Yay!",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : "on enter play hooray;"
         },

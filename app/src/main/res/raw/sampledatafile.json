@@ -70,7 +70,11 @@
             "xLoc" : "100",
             "yLoc" : "100",
             "fontSize" : "36",
-            "text" : "Don't click on the carrot."
+            "text" : "Don't click on the carrot.",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : "on click hide hint;"
         }
@@ -97,7 +101,11 @@
             "xLoc" : "100",
             "yLoc" : "100",
             "fontSize" : "20",
-            "text" : "you win!"
+            "text" : "you win!",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "color" : -16777216
           },
           "script" : "on enter play hooray;"
         }
