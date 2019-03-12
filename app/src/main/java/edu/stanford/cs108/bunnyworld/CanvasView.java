@@ -455,7 +455,7 @@ public class CanvasView extends View {
 
     }
 
-    private void addBackground(Canvas canvas) {
+    public void addBackground(Canvas canvas) {
         // the page stores the background image in a string
         String backgroundImage = GameEditor.getCurrPage().getBackgroundImage();
         if (backgroundImage.equals("")) return;

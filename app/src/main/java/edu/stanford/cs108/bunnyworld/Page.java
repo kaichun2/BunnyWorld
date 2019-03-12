@@ -66,6 +66,7 @@ public class Page {
         this.pageName = pageName;
         this.pageID = pageID;
         this.shapes = shapes;
+        this.backgroundImage = "";
         backgroundMap = new HashMap<String, Integer>();
         allPages.add(this);
         loadBackgroundImages();
@@ -339,7 +340,15 @@ public class Page {
                 float yLoc = Float.parseFloat((String) textObj.get("yLoc"));
                 int fontSize = Integer.parseInt((String) textObj.get("fontSize"));
                 String text = (String) textObj.get("text");
+                boolean bold = (boolean) textObj.get("bold");
+                boolean italic = (boolean) textObj.get("italic");
+                boolean underline = (boolean) textObj.get("underline");
+                int color = (int) (long) textObj.get("color");
                 shape.setShapeText(xLoc, yLoc, fontSize, text);
+                shape.getShapeText().setBold(bold);
+                shape.getShapeText().setItalic(italic);
+                shape.getShapeText().setUnderline(underline);
+                shape.getShapeText().setColor(color);
             }
             pageShapes.add(shape);
         }

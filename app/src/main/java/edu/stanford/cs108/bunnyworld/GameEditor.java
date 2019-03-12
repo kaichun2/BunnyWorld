@@ -1240,6 +1240,8 @@ public class GameEditor extends AppCompatActivity {
                 currPage.setBackgroundImage("");
         }
 
+        CanvasView canvasView = findViewById(R.id.canvas); // make it redraw after they set it
+        canvasView.invalidate();
         Toast toast = Toast.makeText(getApplicationContext(), "The background has been set!", Toast.LENGTH_SHORT);
         toast.show();
     }
