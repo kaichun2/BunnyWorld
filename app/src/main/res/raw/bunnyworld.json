@@ -5,6 +5,7 @@
     {
       "page_id" : "1",
       "page_name" : "page1",
+      "backgroundImage" : "",
       "num_shapes": "5",
       "shapes" : [
         {
@@ -89,6 +90,7 @@
     {
       "page_id" : "2",
       "page_name" : "fireroom",
+      "backgroundImage" : "",
       "num_shapes": "4",
       "shapes" : [
         {
@@ -154,6 +156,7 @@
     {
       "page_id" : "3",
       "page_name" : "mysticbunnyroom",
+      "backgroundImage" : "",
       "num_shapes": "3",
       "shapes" : [
         {
@@ -206,6 +209,7 @@
     {
       "page_id" : "4",
       "page_name" : "deathbunnyroom",
+      "backgroundImage" : "",
       "num_shapes": "3",
       "shapes" : [
         {
@@ -258,6 +262,7 @@
     {
       "page_id" : "5",
       "page_name" : "winroom",
+      "backgroundImage" : "",
       "num_shapes": "4",
       "shapes" : [
         {
