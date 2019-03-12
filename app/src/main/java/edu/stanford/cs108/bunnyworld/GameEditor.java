@@ -1091,4 +1091,33 @@ public class GameEditor extends AppCompatActivity {
         invalidateOptionsMenu();
         return invalidStates;
     }
+
+    // TODO: working on changing background functionality
+    public void changeBackground(MenuItem item) {
+        switch(item.getItemId()) {
+            case (R.id.redbg):
+                currPage.setBackgroundImage("redsquare");
+                // do red background
+            case (R.id.orangebg):
+                // do orange background
+                currPage.setBackgroundImage("orangesquare");
+            case (R.id.yellowbg):
+                currPage.setBackgroundImage("yellowsquare");
+                // do yellow bg
+            case (R.id.greenbg):
+                currPage.setBackgroundImage("greensquare");
+                // do green bg
+            case (R.id.bluebg):
+                // do blue background
+                currPage.setBackgroundImage("bluesquare");
+            case (R.id.purplebg):
+                currPage.setBackgroundImage("purplesquare");
+                // do purple bg
+        }
+
+        // update background in JSON file??
+
+        Toast toast = Toast.makeText(getApplicationContext(), "The background has been set!", Toast.LENGTH_SHORT);
+        toast.show();
+    }
 }

@@ -82,7 +82,17 @@
 
     <item android:id="@+id/change_background"
         android:title="@string/change_background"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        app:actionViewClass="android.widget.Spinner">
+        <menu>
+            <item android:id="@+id/redbg" android:title="Red" android:onClick="changeBackground"></item>
+            <item android:id="@+id/orangebg" android:title="Orange" android:onClick="changeBackground"></item>
+            <item android:id="@+id/yellowbg" android:title="Yellow" android:onClick="changeBackground"></item>
+            <item android:id="@+id/greenbg" android:title="Green" android:onClick="changeBackground"></item>
+            <item android:id="@+id/bluebg" android:title="Blue" android:onClick="changeBackground"></item>
+            <item android:id="@+id/purplebg" android:title="Purple" android:onClick="changeBackground"></item>
+        </menu>
+    </item>
 
     <item android:id="@+id/import_resource"
         android:title="@string/import_resource"
