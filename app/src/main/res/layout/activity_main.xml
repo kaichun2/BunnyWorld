@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     android:background="@drawable/bunny"
     android:orientation="vertical"
+    android:id="@+id/background"
+    android:onClick="change_background"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -17,9 +19,9 @@
         >
 
         <TextView
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
             android:gravity="center"
             android:textSize="40sp"
             android:textColor="@android:color/black"
@@ -37,8 +39,8 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="@string/play_game"
                 android:onClick="selectPlayGame"
+                android:background="@drawable/play_button"
                 android:layout_margin="25dp"
                 />
 
@@ -47,8 +49,8 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="@string/create_game"
                 android:onClick="createGame"
+                android:background="@drawable/create_button"
                 android:layout_margin="25dp"
                 />
 
@@ -57,8 +59,8 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="@string/edit_game"
                 android:onClick="selectEditGame"
+                android:background="@drawable/edit_button"
                 android:layout_margin="25dp"
                 />
 
@@ -73,4 +75,3 @@
         android:text="@string/deletegames"
         />
 </LinearLayout>
-

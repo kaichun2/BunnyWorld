@@ -5,6 +5,7 @@
     {
       "page_id" : "1",
       "page_name" : "page1",
+      "backgroundImage" : "",
       "num_shapes": "5",
       "shapes" : [
         {
@@ -89,6 +90,7 @@
     {
       "page_id" : "2",
       "page_name" : "fireroom",
+      "backgroundImage" : "",
       "num_shapes": "4",
       "shapes" : [
         {
@@ -154,6 +156,7 @@
     {
       "page_id" : "3",
       "page_name" : "mysticbunnyroom",
+      "backgroundImage" : "",
       "num_shapes": "3",
       "shapes" : [
         {
@@ -206,6 +209,7 @@
     {
       "page_id" : "4",
       "page_name" : "deathbunnyroom",
+      "backgroundImage" : "",
       "num_shapes": "3",
       "shapes" : [
         {
@@ -219,7 +223,7 @@
           "width" : "350",
           "height" : "350",
           "textObj" : null,
-          "script" : "on enter play evillaugh; on drop p2carrot hide p2carrot play munching hide death-bunny show p4hiddenexit; on click play evillaugh;"
+          "script" : "on enter play evillaugh; on drop p2carrot hide p2carrot play munching hide p4deathbunny show p4hiddenexit; on click play evillaugh;"
         },
         {
           "name" : "p4text",
@@ -258,6 +262,7 @@
     {
       "page_id" : "5",
       "page_name" : "winroom",
+      "backgroundImage" : "",
       "num_shapes": "4",
       "shapes" : [
         {
