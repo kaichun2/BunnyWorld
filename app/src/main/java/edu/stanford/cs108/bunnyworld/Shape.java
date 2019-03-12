@@ -11,9 +11,15 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.json.simple.JSONObject;
 
@@ -419,11 +425,23 @@ public class Shape {
         private int fontSize; // sp
         private String text;
 
+        private boolean bold;
+        private boolean italic;
+        private boolean underline;
+        private int color;
+
+
+
         public ShapeText(float x, float y, int fontSize, String text) {
             xLoc = x;
             yLoc = y;
             this.fontSize = fontSize;
             this.text = text;
+
+            bold = false;
+            italic = false;
+            underline = false;
+
         }
 
         /* Optional constructor for ShapeText that uses default customizations. */
@@ -433,6 +451,10 @@ public class Shape {
             yLoc = y;
             fontSize = 36;
             this.text = text;
+
+            bold = false;
+            italic = false;
+            underline = false;
         }
 
         // text also only draws itself if outer object is visible
@@ -441,8 +463,15 @@ public class Shape {
                 textPaint.setColor(Color.WHITE);
                 textPaint.setStyle(Paint.Style.FILL);
 
+
+
                 textPaint.setColor(Color.BLACK);
                 textPaint.setTextSize(fontSize);
+
+                if (bold) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                if (italic) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+                if (underline) textPaint.setUnderlineText(true);
+
                 // TODO: changed xLoc to x and yLoc to y
                 canvas.drawText(text, x, y + fontSize, textPaint);
             }
@@ -457,6 +486,12 @@ public class Shape {
         }
 
         /* Getters and setters. */
+
+        public boolean getBold() {return bold;}
+
+        public boolean getItalic() {return italic;}
+
+        public boolean getUnderline() {return underline;}
 
         public float getX() { return xLoc; }
 
@@ -482,6 +517,12 @@ public class Shape {
 
             return Page.prettyPrintJSON(jsonObj);
         }
+
+        public void setBold(boolean b) {bold = b;}
+
+        public void setItalic(boolean i) {italic = i;}
+
+        public void setUnderline(boolean u) {underline = u;}
 
         public void setX(float newX) { this.xLoc = newX; }
 

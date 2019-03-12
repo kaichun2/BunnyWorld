@@ -12,9 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -39,8 +41,10 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class GameEditor extends AppCompatActivity {
 
@@ -60,6 +64,7 @@ public class GameEditor extends AppCompatActivity {
     static float RESOURCE_BOUNDARY = 0;
     static float RESOURCE_OFFSET = 30;
     static int actionBarHeight;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,7 +176,8 @@ public class GameEditor extends AppCompatActivity {
         error.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runErrorTest();
+                ArrayList<String> invalidStates = runErrorTest();
+                showStatus(invalidStates);
             }
         });
 
@@ -218,7 +224,6 @@ public class GameEditor extends AppCompatActivity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-
         MenuItem errorIcon = menu.findItem(R.id.error_icon);
         if (isError.equals("unchecked")) {
             errorIcon.setIcon(R.drawable.ic_refresh_black_24dp);
@@ -229,6 +234,47 @@ public class GameEditor extends AppCompatActivity {
         }
 
         return super.onPrepareOptionsMenu(menu);
+    }
+
+    public void showStatus(ArrayList<String> invalidStates) {
+        // isError corresponds to currently displayed item
+        final AlertDialog.Builder errorIconDialog = new AlertDialog.Builder(GameEditor.this);
+        errorIconDialog.setTitle("Current error status:");
+
+        String message = "";
+        switch (isError) {
+            case "unchecked": // currently unreachable since they have to validate game to see dialog
+                message = "Check Errors to validate current state of game.";
+                break;
+            case "errors":
+                message = "The following issues were detected: ";
+                for (String invalidState : invalidStates) {
+                    message += "\n\n" + invalidState;
+                }
+                break;
+            case "no errors":
+                message = "No errors were detected. Safe to save.";
+                break;
+        }
+        errorIconDialog.setMessage(message);
+
+        errorIconDialog.setPositiveButton("OK", null);
+        final AlertDialog errorIconD = errorIconDialog.create();
+        errorIconD.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button ok = errorIconD.getButton(AlertDialog.BUTTON_POSITIVE);
+                ok.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        errorIconD.dismiss();
+                    }
+                });
+            }
+        });
+
+        errorIconD.show();
     }
 
     private void drawResources(Map<String, BitmapDrawable> resources) {
@@ -389,6 +435,10 @@ public class GameEditor extends AppCompatActivity {
 
 
                         curr.setScript(finalScript.trim());
+
+                        // since we updated a script, let user know that they should check for errors
+                        isError = "unchecked";
+                        invalidateOptionsMenu();
 
                         triggerD.dismiss();
                     }
@@ -581,12 +631,14 @@ public class GameEditor extends AppCompatActivity {
             LinearLayout textLayout = ((AlertDialog) property).findViewById(R.id.textLayout);
             LinearLayout hwLayout = ((AlertDialog) property).findViewById(R.id.height_width_layout);
             LinearLayout fontLayout = ((AlertDialog) property).findViewById(R.id.font_layout);
+            LinearLayout colorLayout = ((AlertDialog) property).findViewById(R.id.colorLayout);
             EditText fontSize = (EditText) ((AlertDialog) property).findViewById(R.id.font_size);
 
             String imgName = curr.getImgName();
             if (imgName.equals("texticon")) {
                 textLayout.setVisibility(View.VISIBLE);
                 fontLayout.setVisibility(View.VISIBLE);
+                colorLayout.setVisibility(View.VISIBLE);
                 hwLayout.setVisibility(View.GONE);
                 fontSize.setText(String.valueOf((curr.getShapeText().getFontSize())));
             } else {
@@ -869,7 +921,13 @@ public class GameEditor extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         currPage.getShapes().remove(curr);
+                        // make sure to remove from all shapes arraylist as well
+                        Shape.getAllShapes().remove(curr);
                         selectedShape = -1;
+
+                        // since we deleted a shape, let user know that they should check for errors
+                        isError = "unchecked";
+                        invalidateOptionsMenu();
 
                         CanvasView.setSelectedShape(selectedShape);
 
@@ -938,6 +996,12 @@ public class GameEditor extends AppCompatActivity {
                             delete.setMessage("Unable to delete the only remaining page.");
                         }
 
+                        // since we deleted a page, let user know that they should check for errors
+                        isError = "unchecked";
+                        invalidateOptionsMenu();
+
+                        onBackPressed();
+                        delete.dismiss();
                     }
                 });
 
@@ -1061,29 +1125,85 @@ public class GameEditor extends AppCompatActivity {
         curr.setScript("");
     }
 
-    public void runErrorTest() {
-        String[] pageNames = getPageNames();
-        String[] shapeNames = getShapeNames();
-
-        ArrayList<String> scripts = new ArrayList<String>();
-
+    /*
+    Runs an error test and updates the displayed icon.
+    isError args (corresponds to different displayed icons):
+        "unchecked" means the user has not yet ran an error check, or has made
+        changes since last check.
+        "no errors" means the user ran the error check and no errors were found
+        "errors" means that errors were found
+     */
+    public ArrayList<String> runErrorTest() {
         ArrayList<Page> allPages = Page.getPages();
+        Set<String> pageNames = new HashSet<>(Arrays.asList(getPageNames()));
+        Set<String> shapeNames = new HashSet<>(Arrays.asList(getShapeNames()));
+        Set<String> validActions = new HashSet<>(Arrays.asList(scriptActions));
 
-        for (int i = 0; i < allPages.size(); i++) {
+        ArrayList<String> invalidStates = new ArrayList<>(); // reset old states and run test from scratch
+        for (Page page : allPages) {
+            for (Shape shape : page.getShapes()) {
+                HashMap<String, String> commands = shape.getCommands();
 
+                // validate on drop <shape-name> s.t. shape-name exists for current shape
+                for (String trigger : commands.keySet()) {
+                    Log.d("dog", "verifying... " + trigger);
+                    if (trigger.startsWith("on drop")) {
+                        String shapeName = trigger.substring("on drop".length() + 1);
+                        Log.d("dog", shapeName + " is the shape name");
+                        if (!shapeNames.contains(shapeName)) {
+                            String invalidState = shape.getName() + " contains invalid script trigger <"
+                                    + trigger + "> since shape " + shapeName + " does not exist.";
+                            invalidStates.add(invalidState);
+                        }
+                    }
+                }
+
+                // validate each command in rest of script is valid (note that only on drop trigger
+                // references other objects, and since we enforce correct triggers in UI design,
+                // we know the other triggers are valid (onclick, onenter)
+                for (String command : commands.values()) {
+                    // iterate through diff pieces of command, note that this assumes
+                    // page and shape names have no spaces
+                    String prevCommand = ""; // will be used to differentiate b/w pages and shapes
+                    for (String portion : command.split(" ")) {
+                        // note that the script triggers and primitives should also be
+                        // restricted as shape/page names!
+                        if (validActions.contains(portion)) {
+                            prevCommand = portion;
+                        } else {
+                            // note that prevCommand is guaranteed to be one of the following
+                            // cases by design (actions come before page/shape)
+                            if (prevCommand.equals("goto")) { // currently a page
+                                if (!pageNames.contains(portion)) {
+                                    String invalidState = shape.getName() + " contains invalid script action "
+                                            + "goto <" + portion + "> since page " + portion + " does not exist.";
+                                    invalidStates.add(invalidState);
+                                }
+                            } else if (prevCommand.equals("hide")) { // currently a shape
+                                if (!shapeNames.contains(portion)) {
+                                    String invalidState = shape.getName() + " contains invalid script action " +
+                                            "hide <" + portion + "> since shape " + portion + " does not exist.";
+                                    invalidStates.add(invalidState);
+                                }
+                            }
+                            // Note: play corresponds to a sound, and those are guaranteed
+                            //       to be valid given the way the UI is designed :)
+                        }
+
+                    }
+                }
+            }
         }
 
-        isError = "no errors";
-
+        // "unchecked" is initial default value and is set periodically
+        // as the user makes changes to the pages and shapes
+        if (invalidStates.isEmpty()) {
+            isError = "no errors";
+        } else {
+            isError = "errors";
+        }
 
         invalidateOptionsMenu();
-
-        // TODO: LUIS & TASSICA
-        // should we check all the pages and shapes in all the pages
-        // or only check each individual page
-        // the problem is that if they are on a page with no problems they can save
-        // even if there are other pages with errors
-        // because rn the save fxn saves the entire game, not just a single page
-        // also for all  changes (i.e. changing names, deleting, editing, etc) change isError to unchecked and call invalidateOptionsMenu
+        return invalidStates;
     }
 }

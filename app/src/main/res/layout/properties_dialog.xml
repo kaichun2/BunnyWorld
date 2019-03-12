@@ -63,6 +63,45 @@
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
             />
+
+        <CheckBox
+            android:id="@+id/boldOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="B"/>
+
+        <CheckBox
+            android:id="@+id/italicOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="I"/>
+
+        <CheckBox
+            android:id="@+id/underlineOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="U"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/colorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Font Color (Enter Hex Value):"/>
+
+        <EditText
+            android:id="@+id/textColor"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+
     </LinearLayout>
 
     <LinearLayout

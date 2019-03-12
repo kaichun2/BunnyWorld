@@ -42,6 +42,7 @@ public class Page {
     private String pageName;          /* Unique page names only. */
     private int pageID;               /* Sequential Page ID. (May be useful later for extensions. */
     private ArrayList<Shape> shapes;  /* List of all shapes associated with this page. */
+    private String backgroundImage;   /* Background image for current page. */
 
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
@@ -98,6 +99,10 @@ public class Page {
     public int getPageID() {
         return pageID;
     }
+
+    public String getBackgroundImage() { return backgroundImage; }
+
+    public void setBackgroundImage(String imgStr) { backgroundImage = imgStr; }
 
     public static ArrayList<Shape> getPossessions() { return possessions; }
 
@@ -208,9 +213,11 @@ public class Page {
                 JSONObject page = it.next();
                 String page_name = (String) page.get("page_name");
                 int page_id = Integer.parseInt((String) page.get("page_id")); // this won't overflow.
+                String backgroundImg = (String) page.get("backgroundImage");
                 ArrayList<Shape> shapes = parseShapes((JSONArray) page.get("shapes"));
                 // create new page, added automatically to static arr of pages
-                new Page(page_name, page_id, shapes);
+                Page newPage = new Page(page_name, page_id, shapes);
+                newPage.setBackgroundImage(backgroundImg);
             }
 
             /* Load possessions inventory into array of shapes. */
@@ -329,6 +336,7 @@ public class Page {
         pageJSON.put("page_id", Integer.toString(pageID));
         pageJSON.put("page_name", pageName);
         pageJSON.put("num_shapes", String.valueOf(shapes.size()));
+        pageJSON.put("backgroundImage", backgroundImage);
         pageJSON.put("shapes", getShapesJSON());
 
         /* Have JSONObject parse that dictionary into a JSON format. */
