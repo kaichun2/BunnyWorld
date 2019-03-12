@@ -219,7 +219,7 @@
           "width" : "350",
           "height" : "350",
           "textObj" : null,
-          "script" : "on enter play evillaugh; on drop p2carrot hide p2carrot play munching hide death-bunny show p4hiddenexit; on click play evillaugh;"
+          "script" : "on enter play evillaugh; on drop p2carrot hide p2carrot play munching hide p4deathbunny show p4hiddenexit; on click play evillaugh;"
         },
         {
           "name" : "p4text",
