@@ -13,6 +13,7 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,6 +52,7 @@ public class GameEditor extends AppCompatActivity {
     private String triggers[] = {"on click", "on enter", "on drop", "property" };
     private String scriptActions[] = {"goto", "play", "hide", "show"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -549,12 +551,14 @@ public class GameEditor extends AppCompatActivity {
             LinearLayout textLayout = ((AlertDialog) property).findViewById(R.id.textLayout);
             LinearLayout hwLayout = ((AlertDialog) property).findViewById(R.id.height_width_layout);
             LinearLayout fontLayout = ((AlertDialog) property).findViewById(R.id.font_layout);
+            LinearLayout colorLayout = ((AlertDialog) property).findViewById(R.id.colorLayout);
             EditText fontSize = (EditText) ((AlertDialog) property).findViewById(R.id.font_size);
 
             String imgName = curr.getImgName();
             if (imgName.equals("texticon")) {
                 textLayout.setVisibility(View.VISIBLE);
                 fontLayout.setVisibility(View.VISIBLE);
+                colorLayout.setVisibility(View.VISIBLE);
                 hwLayout.setVisibility(View.GONE);
                 fontSize.setText(String.valueOf((curr.getShapeText().getFontSize())));
             } else {
@@ -956,4 +960,5 @@ public class GameEditor extends AppCompatActivity {
 
         curr.setScript("");
     }
+
 }

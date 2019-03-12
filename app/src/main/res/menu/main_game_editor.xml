@@ -47,14 +47,17 @@
 
     <item android:id="@+id/copy_shape"
         android:title="@string/copy_shape"
+        android:onClick="copyShape"
         app:showAsAction="never"/>
 
     <item android:id="@+id/cut_shape"
         android:title="@string/cut_shape"
+        android:onClick="cutShape"
         app:showAsAction="never"/>
 
     <item android:id="@+id/paste_shape"
         android:title="@string/paste_shape"
+        android:onClick="pasteShape"
         app:showAsAction="never"/>
 
     <item android:id="@+id/change_background"
