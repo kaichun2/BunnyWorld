@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -56,6 +58,12 @@ public class GameEditor extends AppCompatActivity {
     private String scriptActions[] = {"goto", "play", "hide", "show"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
     String isError = "unchecked";
+    static float MINIMUM_SIZE = 30;
+    int windowWidth, windowHeight;
+
+    static float RESOURCE_BOUNDARY = 0;
+    static float RESOURCE_OFFSET = 30;
+    static int actionBarHeight;
 
 
     @Override
@@ -136,8 +144,11 @@ public class GameEditor extends AppCompatActivity {
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int windowHeight = displayMetrics.heightPixels;
-        int windowWidth = displayMetrics.widthPixels;
+        windowHeight = displayMetrics.heightPixels;
+        windowWidth = displayMetrics.widthPixels;
+
+        CanvasView.setWindowHeight(windowHeight);
+        CanvasView.setWindowWidth(windowWidth);
 
         LinearLayout.LayoutParams resourceParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, windowHeight / 4);
         HorizontalScrollView resourcePanel = findViewById(R.id.resource_panel);
@@ -146,6 +157,12 @@ public class GameEditor extends AppCompatActivity {
         FrameLayout.LayoutParams rightpanelParams = new FrameLayout.LayoutParams(windowWidth / 5, FrameLayout.LayoutParams.MATCH_PARENT);
         LinearLayout rightPanel = findViewById(R.id.right_panel);
         rightPanel.setLayoutParams(rightpanelParams);
+
+        TypedValue tv = new TypedValue();
+        this.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true);
+        actionBarHeight = getResources().getDimensionPixelSize(tv.resourceId);
+
+        RESOURCE_BOUNDARY = windowHeight * 3.0f / 4.0f - actionBarHeight - RESOURCE_OFFSET;
 
     }
 
@@ -524,20 +541,54 @@ public class GameEditor extends AppCompatActivity {
                             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
-
-                            // TODO: check that x and y is not out of bounds and height and width is not 0
-                            curr.setX(Float.parseFloat(x_val.getText().toString()));
-                            curr.setY(Float.parseFloat(y_val.getText().toString()));
-
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
                             curr.setShapeText(newText.getText().toString());
 
                             String imgName = curr.getImgName();
                             if (!imgName.equals("texticon")) {
-                                curr.setWidth(Float.parseFloat(width.getText().toString()));
-                                curr.setHeight(Float.parseFloat(height.getText().toString()));
+
+                                float possWidth = Float.parseFloat(width.getText().toString());
+                                float possHeight = Float.parseFloat(height.getText().toString());
+
+                                if (possWidth > 0) {
+                                    curr.setWidth(possWidth);
+                                } else {
+                                    Toast widthToast = Toast.makeText(getApplicationContext(), "Width cannot be 0", Toast.LENGTH_SHORT);
+                                    widthToast.show();
+                                    curr.setWidth(MINIMUM_SIZE);
+                                }
+
+                                if (possHeight > 0) {
+                                    curr.setHeight(possHeight);
+                                } else {
+                                    Toast heightToast = Toast.makeText(getApplicationContext(), "Height cannot be 0", Toast.LENGTH_SHORT);
+                                    heightToast.show();
+                                    curr.setHeight(MINIMUM_SIZE);
+                                }
+
+
                             }
+
+                            float actualWidth = curr.getWidth();
+                            float actualHeight = curr.getHeight();
+                            float possX = Float.parseFloat(x_val.getText().toString());
+                            float possY = Float.parseFloat(y_val.getText().toString());
+
+                            if (possX >= 0 && possX + actualWidth <= windowWidth) {
+                                curr.setX(possX);
+                            } else {
+                                Toast xToast = Toast.makeText(getApplicationContext(), "x value is out of bounds", Toast.LENGTH_SHORT);
+                                xToast.show();
+                            }
+
+                            if (possY >= 0 && possY + actualHeight <= RESOURCE_BOUNDARY) {
+                                curr.setY(possY);
+                            } else {
+                                Toast yToast = Toast.makeText(getApplicationContext(), "y value is out of bounds", Toast.LENGTH_SHORT);
+                                yToast.show();
+                            }
+
 
                             // text object
                             if (!curr.getText().isEmpty()) {
@@ -798,23 +849,55 @@ public class GameEditor extends AppCompatActivity {
         editableObjName.setVisibility(view.VISIBLE);
     }
 
+    private boolean objExists(String obj) {
+        ArrayList<Shape> allShapes = currPage.getShapes();
+        for (Shape s : allShapes) {
+            if (obj.equals(s.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void changeObjName(View view) {
 
-        RelativeLayout objNameHeader = findViewById(R.id.obj_name_header);
-
-        objNameHeader.setVisibility(view.VISIBLE);
-
-        LinearLayout editableObjName = findViewById(R.id.editable_obj_name);
-
-        editableObjName.setVisibility(view.GONE);
-
         EditText newObjName = findViewById(R.id.change_obj_name);
+        String name = newObjName.getText().toString();
 
-        final Shape curr = currPage.getShapes().get(selectedShape);
-        curr.setName(newObjName.getText().toString());
+        if (!objExists(name) && !name.contains(" ") && !name.equals("")) {
+            final Shape curr = currPage.getShapes().get(selectedShape);
+            curr.setName(name);
 
-        TextView objName = findViewById(R.id.obj_name);
-        objName.setText(curr.getName());
+            TextView objName = findViewById(R.id.obj_name);
+            objName.setText(curr.getName());
+
+            RelativeLayout objNameHeader = findViewById(R.id.obj_name_header);
+
+            objNameHeader.setVisibility(view.VISIBLE);
+
+            LinearLayout editableObjName = findViewById(R.id.editable_obj_name);
+
+            editableObjName.setVisibility(view.GONE);
+
+            TextView errorMsg = findViewById(R.id.error_shape);
+            errorMsg.setVisibility(view.GONE);
+
+        } else {
+
+            TextView errorMsg = findViewById(R.id.error_shape);
+            errorMsg.setVisibility(view.VISIBLE);
+
+            if (objExists(name)) {
+                errorMsg.setText("Shape with that name already exists.");
+            } else if (name.contains(" ")) {
+                errorMsg.setText("Shape names cannot have spaces.");
+            } else if (name.equals("")) {
+                errorMsg.setText("Shape names cannot be empty.");
+            }
+        }
+
+
     }
 
     public void deleteObject(View view) {
@@ -893,17 +976,24 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TODO: CHECK IF THERES ONLY ONE PAGE?
                         ArrayList<Page> allPages = Page.getPages();
                         int removed = allPages.indexOf(currPage);
                         int removedID = currPage.getPageID();
-                        allPages.remove(currPage);
 
-                        for (int i = removed; i < allPages.size(); i++) {
-                            Page curr = allPages.get(i);
-                            curr.setPageID(removedID);
+                        if (allPages.size() > 1) {
+                            allPages.remove(currPage);
 
-                            removedID++;
+                            for (int i = removed; i < allPages.size(); i++) {
+                                Page curr = allPages.get(i);
+                                curr.setPageID(removedID);
+
+                                removedID++;
+                            }
+
+                            onBackPressed();
+                            delete.dismiss();
+                        } else {
+                            delete.setMessage("Unable to delete the only remaining page.");
                         }
 
                         // since we deleted a page, let user know that they should check for errors
@@ -970,14 +1060,25 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TODO: validate that it is a unique page name, verify that there are no spaces
                         EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
+                        String name = newPageName.getText().toString();
 
-                        currPage.setPageName(newPageName.getText().toString());
+                        if (!pageExists(name) && !name.contains(" ") && !name.equals("")) {
+                            currPage.setPageName(name);
+                            getSupportActionBar().setTitle(currPage.getPageName());
+                            pageName.dismiss();
+                        } else {
+                            TextView errorMessage = ((AlertDialog) pageName).findViewById(R.id.error_message);
+                            errorMessage.setVisibility(v.VISIBLE);
 
-                        getSupportActionBar().setTitle(currPage.getPageName());
-
-                        pageName.dismiss();
+                            if (pageExists(name)) {
+                                errorMessage.setText("Page with that name already exists.");
+                            } else if (name.contains(" ")) {
+                                errorMessage.setText("Page names cannot have spaces.");
+                            } else if (name.equals("")) {
+                                errorMessage.setText("Page names cannot be empty.");
+                            }
+                        }
                     }
                 });
 
@@ -993,6 +1094,17 @@ public class GameEditor extends AppCompatActivity {
         });
 
         pageName.show();
+    }
+
+    private boolean pageExists(String page) {
+        ArrayList<Page> allPages = Page.getPages();
+        for (Page p : allPages) {
+            if (page.equals(p.getPageName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     static public Page getCurrPage() {
