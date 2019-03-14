@@ -4,11 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".PageDirectory"
     >
+
+    <item
+        android:title="@string/undo_delete_page"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:showAsAction="always"
+        />
+
+    <item
+        android:id="@+id/undo_delete_page"
+        android:title=""
+        android:icon="@drawable/ic_undo_black_24dp"
+        app:showAsAction="always"
+        android:onClick="undoPageDelete"
+        />
+
     <item
         android:id="@+id/edit_page"
         android:title=""
         android:icon="@drawable/ic_edit_black_24dp"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         android:onClick="editGameName"
         />
 
@@ -16,7 +32,7 @@
         android:id="@+id/save_page"
         android:title=""
         android:icon="@drawable/ic_save_black_24dp"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         android:onClick="saveGame"
         />
 
@@ -24,7 +40,7 @@
         android:id="@+id/delete_page"
         android:title=""
         android:icon="@drawable/ic_delete_black_24dp"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         android:onClick="deleteGame"
         />
 

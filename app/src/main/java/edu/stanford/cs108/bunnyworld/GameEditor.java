@@ -1260,4 +1260,8 @@ public class GameEditor extends AppCompatActivity {
     public void pasteShape(MenuItem menuItem) {
 
     }
+
+    public void undoShapeDelete(MenuItem item) {
+
+    }
 }
