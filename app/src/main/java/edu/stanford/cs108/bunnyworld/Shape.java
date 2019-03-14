@@ -29,7 +29,7 @@ import org.json.simple.JSONObject;
  * If you are in an activity, just pass in "this" keyword.
  * If you are in a View, pass in getContext().
  */
-public class Shape {
+public class Shape implements Cloneable {
 
     private String name;         /* Name of shape. Must be unique to all pages. */
     private String imgName;      /* Name of image (in drawable, no extension). */
@@ -40,6 +40,7 @@ public class Shape {
     private boolean isVisible;   /* Is this Shape visible? */
     private boolean isMovable;   /* Is this Shape movable? */
     private String script;       /* Script given to shape. */
+    private int shapeHash;       /* Used internally for undoing shape configurations. */
 
     /* Grey paint object (for when there's no image). */
     private Paint grayPaint = new Paint();
@@ -81,12 +82,25 @@ public class Shape {
         if (!script.isEmpty()) commands = parseScript(script);
         allShapes.add(this);
         grayPaint.setColor(Color.GRAY);
+        shapeHash = this.hashCode();
     }
 
     public Shape() {
         /* Default values, all attributes should be set using setters. */
         this("", -1.0f, -1.0f, -1.0f, -1.0f, "", "",
                 -1,null, true, false);
+    }
+
+    // needed for undo support, making it possible
+    // to make copies of shapes
+    public Object clone() {
+        Object clone = null;
+        try {
+            clone = super.clone();
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace();
+        }
+        return clone;
     }
 
     // init drawables and map the imgNames to the respective drawables
@@ -294,6 +308,33 @@ public class Shape {
 
     }
 
+    /*
+    Will replace all of the properties of the current shape
+    with the other shape. nom nom
+
+    This is useful for the undo feature. We have to update
+    shapes based on the properties of clones of previous states,
+    but we want to retain the reference to the affectedShape.
+    One way to do that is to have the shape with the important
+    reference (the not-cloned shape) to "consume" the cloned shape
+    with the properties we want to return to.
+     */
+    public void consume(Shape otherShape) {
+        this.name = otherShape.name;
+        this.imgName = otherShape.imgName;
+        this.x = otherShape.x;
+        this.y = otherShape.y;
+        this.width = otherShape.width;
+        this.height = otherShape.height;
+        this.pageID = otherShape.pageID;
+        this.textObj = otherShape.textObj;
+        this.isVisible = otherShape.isVisible;
+        this.isMovable = otherShape.isMovable;
+        this.script = otherShape.script;
+        this.commands = otherShape.commands;
+        this.shapeHash = otherShape.shapeHash;
+    }
+
     // returns the json string for this shape
     public String getShapeJSON() {
         JSONObject jsonObj = new JSONObject();
@@ -334,6 +375,8 @@ public class Shape {
     public boolean isVisible() { return isVisible; }
 
     public boolean isMovable() { return isMovable; }
+
+    public int getShapeHash() { return shapeHash; }
 
     public String getText() { return textObj.getText(); }
 

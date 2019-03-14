@@ -36,7 +36,7 @@
     <string name="error_status">Error Status:</string>
     <string name="check_errors">Check Errors</string>
     <string name="undo_delete_page">Undo Delete Page:</string>
-    <string name="undo_delete_shape">Undo Delete Shape:</string>
+    <string name="undo_shape_changes">Undo Shape Changes:</string>
     <string-array name="location_array">
         <item>Show Right</item>
         <item>Show Left</item>
