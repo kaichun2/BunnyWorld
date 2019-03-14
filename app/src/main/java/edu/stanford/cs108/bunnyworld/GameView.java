@@ -76,10 +76,22 @@ public class GameView extends View {
             setDefaultProperties();
         }
 
+        Page currPage = GameActivity.pages.get(currentPageIndex);
+
+        // draw on the background
+        String backgroundImage = currPage.getBackgroundImage();
+        if (!backgroundImage.equals("")) {
+            int imageFile = currPage.getImage(backgroundImage);
+            if (imageFile != -1) {
+                Drawable draw = getResources().getDrawable(imageFile);
+                draw.setBounds(0, 0, getWidth(), getHeight());
+                draw.draw(canvas);
+            }
+        }
+
         drawBoundaryLine(canvas); // draw the boundary line for possessions always
 
         // handle logic for opening a new page (calling onEnter scripts)
-        Page currPage = GameActivity.pages.get(currentPageIndex);
         Page newPage = null;
         if (openNewPage) {
             // call on Enter's for each shape
@@ -89,17 +101,6 @@ public class GameView extends View {
             }
             openNewPage = newPage != null; // won't open another page if the onEnter's didn't define so
 
-        }
-
-        // draw on the background
-        String backgroundImage = currPage.getBackgroundImage();
-        if (!backgroundImage.equals("")) {
-            int imageFile = GameEditor.getCurrPage().getImage(backgroundImage);
-            if (imageFile != -1) {
-                Drawable draw = getResources().getDrawable(imageFile);
-                draw.setBounds(0, 0, getWidth(), getHeight());
-                draw.draw(canvas);
-            }
         }
 
         // draw all the shapes regardless of whether we are opening a new page
