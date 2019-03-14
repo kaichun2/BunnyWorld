@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -88,6 +89,17 @@ public class GameView extends View {
             }
             openNewPage = newPage != null; // won't open another page if the onEnter's didn't define so
 
+        }
+
+        // draw on the background
+        String backgroundImage = currPage.getBackgroundImage();
+        if (!backgroundImage.equals("")) {
+            int imageFile = GameEditor.getCurrPage().getImage(backgroundImage);
+            if (imageFile != -1) {
+                Drawable draw = getResources().getDrawable(imageFile);
+                draw.setBounds(0, 0, getWidth(), getHeight());
+                draw.draw(canvas);
+            }
         }
 
         // draw all the shapes regardless of whether we are opening a new page

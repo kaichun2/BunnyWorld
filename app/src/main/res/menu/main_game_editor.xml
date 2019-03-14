@@ -109,6 +109,7 @@
             <item android:id="@+id/greenbg" android:title="Green" android:onClick="changeBackground"></item>
             <item android:id="@+id/bluebg" android:title="Blue" android:onClick="changeBackground"></item>
             <item android:id="@+id/purplebg" android:title="Purple" android:onClick="changeBackground"></item>
+            <item android:id="@+id/nobg" android:title="None" android:onClick="changeBackground"></item>
         </menu>
     </item>
 
