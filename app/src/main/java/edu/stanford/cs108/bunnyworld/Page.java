@@ -44,6 +44,7 @@ public class Page {
     private ArrayList<Shape> shapes;  /* List of all shapes associated with this page. */
     private String backgroundImage;   /* Background image for current page. */
 
+
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
     /* In sequential order of Page IDs due to how database is structured. */
@@ -66,6 +67,7 @@ public class Page {
         this.pageID = pageID;
         this.shapes = shapes;
         allPages.add(this);
+
     }
 
     // a default constructor -> don't add to allPages
@@ -618,6 +620,8 @@ public class Page {
         }
         return ret.toString();
     }
+
+
 
 //    public static void test(Context context) {
 //        Page.loadDatabase(context, SAMPLE_DATA_FILE);

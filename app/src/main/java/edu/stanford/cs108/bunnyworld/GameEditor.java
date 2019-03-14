@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
@@ -29,6 +30,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Spinner;
@@ -541,9 +543,16 @@ public class GameEditor extends AppCompatActivity {
                             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
+                            //EditText color = (EditText) ((AlertDialog) property).findViewById(R.id.textColor);
+                            CheckBox bold = (CheckBox) ((AlertDialog) property).findViewById(R.id.boldOption);
+                            CheckBox italic = (CheckBox) ((AlertDialog) property).findViewById(R.id.italicOption);
+                            CheckBox ul = (CheckBox) ((AlertDialog) property).findViewById(R.id.underlineOption);
+                            RadioGroup rg = (RadioGroup) ((AlertDialog) property).findViewById(R.id.color_options);
+
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
                             curr.setShapeText(newText.getText().toString());
+
 
                             String imgName = curr.getImgName();
                             if (!imgName.equals("texticon")) {
@@ -597,6 +606,21 @@ public class GameEditor extends AppCompatActivity {
                                 curr.getShapeText().setFontSize(Integer.parseInt(fontSize.getText().toString()));
                                 curr.setWidth(curr.getText().length() * curr.getShapeText().getFontSize() / 2);
                                 curr.setHeight(curr.getShapeText().getFontSize());
+
+                                //int col = Integer.parseInt(color.getText().toString());
+                                int col = Color.BLACK;
+                                int id = rg.getCheckedRadioButtonId();
+                                if (id  == R.id.red) {col = Color.RED; }
+                                else if (id  == R.id.yellow) {col = Color.YELLOW; }
+                                else if (id  == R.id.green) {col = Color.GREEN; }
+                                else if (id  == R.id.blue) {col = Color.BLUE; }
+                                else if (id  == R.id.magenta) {col = Color.MAGENTA; }
+                                else if (id  == R.id.gray) {col = Color.GRAY; }
+
+                                curr.getShapeText().setTColor(col);
+                                curr.getShapeText().setBold(bold.isChecked());
+                                curr.getShapeText().setItalic(italic.isChecked());
+                                curr.getShapeText().setUnderline(ul.isChecked());
                             }
 
 
@@ -633,6 +657,10 @@ public class GameEditor extends AppCompatActivity {
             LinearLayout fontLayout = ((AlertDialog) property).findViewById(R.id.font_layout);
             LinearLayout colorLayout = ((AlertDialog) property).findViewById(R.id.colorLayout);
             EditText fontSize = (EditText) ((AlertDialog) property).findViewById(R.id.font_size);
+            RadioGroup rg = (RadioGroup) ((AlertDialog) property).findViewById(R.id.color_options);
+            CheckBox bold = (CheckBox) ((AlertDialog) property).findViewById(R.id.boldOption);
+            CheckBox italic = (CheckBox) ((AlertDialog) property).findViewById(R.id.italicOption);
+            CheckBox ul = (CheckBox) ((AlertDialog) property).findViewById(R.id.underlineOption);
 
             String imgName = curr.getImgName();
             if (imgName.equals("texticon")) {
@@ -641,6 +669,21 @@ public class GameEditor extends AppCompatActivity {
                 colorLayout.setVisibility(View.VISIBLE);
                 hwLayout.setVisibility(View.GONE);
                 fontSize.setText(String.valueOf((curr.getShapeText().getFontSize())));
+
+                if(curr.getShapeText().getTColor() == Color.RED) rg.check(R.id.red);
+                else if(curr.getShapeText().getTColor() == Color.YELLOW) rg.check(R.id.yellow);
+                else if(curr.getShapeText().getTColor() == Color.GREEN) rg.check(R.id.green);
+                else if(curr.getShapeText().getTColor() == Color.BLUE) rg.check(R.id.blue);
+                else if(curr.getShapeText().getTColor() == Color.MAGENTA) rg.check(R.id.magenta);
+                else if(curr.getShapeText().getTColor() == Color.GRAY) rg.check(R.id.gray);
+                else rg.check(R.id.black);
+
+                bold.setChecked(curr.getShapeText().getBold());
+                italic.setChecked(curr.getShapeText().getItalic());
+                ul.setChecked(curr.getShapeText().getUnderline());
+
+
+
             } else {
                 textLayout.setVisibility(View.GONE);
                 fontLayout.setVisibility(View.GONE);
@@ -1222,5 +1265,6 @@ public class GameEditor extends AppCompatActivity {
     public void pasteShape(MenuItem menuItem) {
 
     }
+
 
 }

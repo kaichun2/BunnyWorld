@@ -465,11 +465,11 @@ public class Shape {
             if (isVisible) {
                 textPaint.setColor(Color.WHITE);
                 textPaint.setStyle(Paint.Style.FILL);
-                textPaint.setColor(Color.BLACK);
+                textPaint.setColor(color);
                 textPaint.setTextSize(fontSize);
-
-                if (bold) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-                if (italic) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+                if (bold && italic) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
+                else if (bold) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                else if (italic) textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                 if (underline) textPaint.setUnderlineText(true);
 
                 canvas.drawText(text, x, y + fontSize, textPaint);
@@ -492,7 +492,7 @@ public class Shape {
 
         public boolean getUnderline() { return underline; }
 
-        public int getColor() { return color; }
+        public int getTColor() { return color; }
 
         public float getX() { return xLoc; }
 
@@ -530,7 +530,9 @@ public class Shape {
 
         public void setUnderline(boolean u) { underline = u; }
 
-        public void setColor(int col) { color = col; }
+        public void setTColor(int col) {
+            color = col;
+        }
 
         public void setX(float newX) { this.xLoc = newX; }
 
