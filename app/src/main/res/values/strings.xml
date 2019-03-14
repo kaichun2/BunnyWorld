@@ -6,7 +6,7 @@
     <string name="cut_shape">Cut Shape</string>
     <string name="paste_shape">Paste Shape</string>
     <string name="change_background">Change Background</string>
-    <string name="import_resource">Import Resource</string>
+    <string name="import_resource">Import Image</string>
     <string name="x_val">X:</string>
     <string name="y_val">Y:</string>
     <string name="height">Height:</string>

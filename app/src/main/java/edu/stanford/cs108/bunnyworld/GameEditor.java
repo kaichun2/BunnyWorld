@@ -1,12 +1,20 @@
 package edu.stanford.cs108.bunnyworld;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -40,6 +48,12 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,6 +79,7 @@ public class GameEditor extends AppCompatActivity {
 
     static float RESOURCE_BOUNDARY = 0;
     static float RESOURCE_OFFSET = 30;
+    static int GALLERY_REQUEST = 1;
     static int actionBarHeight;
 
 
@@ -139,8 +154,8 @@ public class GameEditor extends AppCompatActivity {
                 }
         );
 
-        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
-        drawResources(resources);
+
+        drawResources();
 
         selectedResource = -1;
 
@@ -279,7 +294,10 @@ public class GameEditor extends AppCompatActivity {
         errorIconD.show();
     }
 
-    private void drawResources(Map<String, BitmapDrawable> resources) {
+    private void drawResources() {
+        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
+
+
         LinearLayout resourceView = findViewById(R.id.resource_scroll);
 
         for (Map.Entry<String, BitmapDrawable> resource : resources.entrySet()) {
@@ -1299,6 +1317,112 @@ public class GameEditor extends AppCompatActivity {
     }
 
     public void undoShapeDelete(MenuItem item) {
+
+    }
+
+    public void importResource(MenuItem item) {
+        Intent resourceIntent = new Intent(Intent.ACTION_PICK);
+        resourceIntent.setType("image/*");
+        startActivityForResult(resourceIntent, GALLERY_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        final Uri resourceUri = data.getData();
+        InputStream resourceStream = null;
+
+
+        if (resultCode == RESULT_OK) {
+            try {
+                resourceStream = getContentResolver().openInputStream(resourceUri);
+
+                final Bitmap selectedResource = BitmapFactory.decodeStream(resourceStream);
+                BitmapDrawable bitmap = new BitmapDrawable(getResources(), selectedResource);
+
+                String fileName = queryFileName(resourceUri);
+
+                saveToInternalStorage(selectedResource, fileName);
+
+                HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(this);
+                newResources.put(fileName, bitmap);
+                Shape.importedResources.add(fileName);
+
+                LinearLayout resourceView = findViewById(R.id.resource_scroll);
+                resourceView.removeAllViews();
+                drawResources();
+
+            } catch (FileNotFoundException e) {
+
+                e.printStackTrace();
+
+                Toast errorImport = Toast.makeText(getApplicationContext(), "Unable to import resource", Toast.LENGTH_SHORT);
+                errorImport.show();
+
+            } finally {
+                try {
+                    resourceStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else {
+            Toast emptyImport = Toast.makeText(getApplicationContext(), "No resource chosen", Toast.LENGTH_SHORT);
+            emptyImport.show();
+        }
+    }
+
+    private String queryFileName(Uri uri) {
+        Cursor returnCursor =
+                getContentResolver().query(uri, null, null, null, null);
+
+        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+
+        returnCursor.moveToFirst();
+        String fileName = returnCursor.getString(nameIndex);
+        returnCursor.close();
+        return fileName;
+    }
+
+    private String saveToInternalStorage(Bitmap bitmapImage, String fileName){
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+
+        File directory = cw.getDir("resourceDir", Context.MODE_PRIVATE);
+        File resourcePath = new File(directory, fileName);
+
+        FileOutputStream fileOS = null;
+
+        try {
+            fileOS = new FileOutputStream(resourcePath);
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fileOS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fileOS.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return directory.getAbsolutePath();
+    }
+
+    static public void loadResourceFromStorage(String path, String name, Context context) {
+
+        try {
+            File resourceFile = new File(path, name);
+
+            final Bitmap selectedImage = BitmapFactory.decodeStream(new FileInputStream(resourceFile));
+            BitmapDrawable bitmap = new BitmapDrawable(context.getResources(), selectedImage);
+
+            HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(context);
+            newResources.put(name, bitmap);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 }

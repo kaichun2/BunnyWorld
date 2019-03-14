@@ -63,6 +63,7 @@ public class Shape {
     private static String[] sounds = new String[] {"evillaugh", "carrotcarrotcarrot", "fire",
                                                    "hooray", "munch", "munching", "woof"};
 
+    public static ArrayList<String> importedResources = new ArrayList<>();
 
     public Shape(String name, float x, float y, float width, float height, String script,
                  String imgName, int pageID, ShapeText textObj, boolean isVisible, boolean isMovable) {
