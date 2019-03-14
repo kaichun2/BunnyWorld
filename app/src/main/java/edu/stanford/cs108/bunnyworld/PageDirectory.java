@@ -23,6 +23,7 @@ import android.widget.RelativeLayout;
 import android.widget.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import android.content.Intent;
 import android.widget.TextView;
@@ -107,19 +108,17 @@ public class PageDirectory extends AppCompatActivity {
         pageNameDialog.setPositiveButton("Ok", null);
         pageNameDialog.setNegativeButton("Cancel", null);
 
-
         final AlertDialog pageName = pageNameDialog.create();
         pageName.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
+                EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
+                newPageName.setText("page" + (pages.size() + 1));
                 Button ok = pageName.getButton(AlertDialog.BUTTON_POSITIVE);
                 ok.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: create a page
-                        // validate that it is a unique page name
-                        // verify that there are no spaces
                         EditText newPageName = ((AlertDialog) pageName).findViewById(R.id.editable_page_name);
                         String name = newPageName.getText().toString();
 
@@ -209,20 +208,27 @@ public class PageDirectory extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-                        // TO DO: change page name
-                        // validate that it is a unique page name
-                        // verify that there are no spaces
-                        EditText newPageName = ((AlertDialog) gameNameD).findViewById(R.id.editable_page_name);
+                        EditText newGameName = ((AlertDialog) gameNameD).findViewById(R.id.editable_page_name);
+                        String newGameNameStr = newGameName.getText().toString();
 
-                        Page.deleteGame(getApplicationContext(), gameName);
+                        if (!gameExists(newGameNameStr) && !newGameNameStr.contains(" ") && !newGameNameStr.equals("")) {
+                            Page.deleteGame(getApplicationContext(), gameName);
+                            gameName = newGameNameStr;
+                            getSupportActionBar().setTitle(gameName);
+                            Page.loadIntoDatabaseFile(getApplicationContext(), gameName);
+                            gameNameD.dismiss();
+                        } else {
+                            TextView errorMsg = ((AlertDialog) gameNameD).findViewById(R.id.error_message);
+                            errorMsg.setVisibility(View.VISIBLE);
 
-                        gameName = newPageName.getText().toString();
-
-                        getSupportActionBar().setTitle(gameName);
-
-                        Page.loadIntoDatabaseFile(getApplicationContext(), gameName);
-
-                        gameNameD.dismiss();
+                            if (gameExists(newGameNameStr)) {
+                                errorMsg.setText("Game with that name already exists.");
+                            } else if (newGameNameStr.contains(" ")) {
+                                errorMsg.setText("Game name cannot have spaces.");
+                            } else if (newGameNameStr.equals("")) {
+                                errorMsg.setText("Game name cannot be empty.");
+                            }
+                        }
                     }
                 });
 
@@ -239,6 +245,17 @@ public class PageDirectory extends AppCompatActivity {
 
         gameNameD.show();
 
+    }
+
+    private boolean gameExists(String obj) {
+        ArrayList<String> gameNames = Page.getGames(this);
+        for (String game : gameNames) {
+            if (obj.equals(game) && !gameName.equals(game)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void saveGame(MenuItem item) {
@@ -299,5 +316,21 @@ public class PageDirectory extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.page_dir_editor, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    // for undo page delete support
+    public void undoPageDelete(MenuItem menuItem) {
+        Stack<Page> deletedPages = GameEditor.deletedPages;
+        if (!deletedPages.empty()) {
+            Page returnedPage = deletedPages.pop();
+            Page.getPages().add(returnedPage);
+
+            for (Shape shape : returnedPage.getShapes()) {
+                Shape.getAllShapes().add(shape);
+            }
+        }
+
+        // restart activity
+        onResume();
     }
 }

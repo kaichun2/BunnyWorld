@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -67,13 +68,22 @@ public class GameEditor extends AppCompatActivity {
     static int actionBarHeight;
 
     // for undo support (when page is removed)
-    private Stack<Page> deletedPages;
+    // we initialize it here since if we did it in constructor
+    // we would not be able to maintain multiple pages since onCreate
+    // would reset the stack
+    public static Stack<Page> deletedPages = new Stack<>();
 
-    // for undo support (when shape is removed)
-    private Stack<Shape> deletedShapes;
 
-    // for undo shape changes
-    private Shape lastShapeConfig;
+    // will be initialized in onCreate since the shape stack
+    // is a property of the current page, it should not carry
+    // over between pages
+    public static Stack<ShapeEvent> undoShapeStack;
+
+    // for undo support
+    public static final int ADD_SHAPE = 1;
+    public static final int DELETE_SHAPE = 2;
+    public static final int MISC_SHAPE_CONFIG = 3;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,10 +183,7 @@ public class GameEditor extends AppCompatActivity {
 
         RESOURCE_BOUNDARY = windowHeight * 3.0f / 4.0f - actionBarHeight - RESOURCE_OFFSET;
 
-        deletedPages = new Stack<>();
-        deletedShapes = new Stack<>();
-        lastShapeConfig = null;
-
+        undoShapeStack = new Stack<>();
     }
 
     @Override
@@ -379,7 +386,6 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-
                         String shape = shapeSpinner.getSelectedItem().toString();
                         String other = otherSpinner.getSelectedItem().toString();
 
@@ -447,7 +453,10 @@ public class GameEditor extends AppCompatActivity {
                         finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
 
 
-                        lastShapeConfig = (Shape) curr.clone();
+                        // undo support
+                        ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                        undoShapeStack.push(event);
+
                         curr.setScript(finalScript.trim());
 
                         // since we updated a script, let user know that they should check for errors
@@ -555,8 +564,9 @@ public class GameEditor extends AppCompatActivity {
                             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
-                            // for undo shape changes support
-                            lastShapeConfig = (Shape) curr.clone();
+                            // undo support
+                            ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                            undoShapeStack.push(event);
 
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
@@ -688,6 +698,7 @@ public class GameEditor extends AppCompatActivity {
             triggerDialog.setNeutralButton("Play", null);
         }
 
+
         triggerDialog.setSingleChoiceItems( arrayNames, 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -793,7 +804,9 @@ public class GameEditor extends AppCompatActivity {
                         finalScript += !onClick.equals("on click ") ? " " + onClick.trim() + ";" : "";
                         finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
 
-
+                        // undo support
+                        ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                        undoShapeStack.push(event);
 
                         curr.setScript(finalScript.trim());
 
@@ -864,12 +877,18 @@ public class GameEditor extends AppCompatActivity {
         LinearLayout editableObjName = findViewById(R.id.editable_obj_name);
 
         editableObjName.setVisibility(view.VISIBLE);
+
+        final Shape curr = currPage.getShapes().get(selectedShape);
+        EditText changeObjName = editableObjName.findViewById(R.id.change_obj_name);
+
+        changeObjName.setText(curr.getName());
     }
 
     private boolean objExists(String obj) {
+        final Shape curr = currPage.getShapes().get(selectedShape);
         ArrayList<Shape> allShapes = currPage.getShapes();
         for (Shape s : allShapes) {
-            if (obj.equals(s.getName())) {
+            if (obj.equals(s.getName()) && !curr.equals(s)) {
                 return true;
             }
         }
@@ -884,6 +903,10 @@ public class GameEditor extends AppCompatActivity {
 
         if (!objExists(name) && !name.contains(" ") && !name.equals("")) {
             final Shape curr = currPage.getShapes().get(selectedShape);
+            // undo support
+            ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+            undoShapeStack.push(event);
+
             curr.setName(name);
 
             TextView objName = findViewById(R.id.obj_name);
@@ -914,7 +937,6 @@ public class GameEditor extends AppCompatActivity {
             }
         }
 
-
     }
 
     public void deleteObject(View view) {
@@ -942,8 +964,9 @@ public class GameEditor extends AppCompatActivity {
                         Shape.getAllShapes().remove(curr);
                         selectedShape = -1;
 
-                        // for undo support
-                        deletedShapes.push(curr);
+                        // undo support
+                        ShapeEvent event = new ShapeEvent(DELETE_SHAPE, (Shape) curr.clone());
+                        undoShapeStack.push(event);
 
                         // since we deleted a shape, let user know that they should check for errors
                         isError = "unchecked";
@@ -1127,7 +1150,7 @@ public class GameEditor extends AppCompatActivity {
     private boolean pageExists(String page) {
         ArrayList<Page> allPages = Page.getPages();
         for (Page p : allPages) {
-            if (page.equals(p.getPageName())) {
+            if (page.equals(p.getPageName()) && !currPage.getPageName().equals(page)) {
                 return true;
             }
         }
@@ -1150,6 +1173,10 @@ public class GameEditor extends AppCompatActivity {
 
         resetToast.show();
 
+        // undo support
+        ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+        undoShapeStack.push(event);
+
         curr.setScript("");
     }
 
@@ -1163,6 +1190,7 @@ public class GameEditor extends AppCompatActivity {
      */
     public ArrayList<String> runErrorTest() {
         ArrayList<Page> allPages = Page.getPages();
+        ArrayList<Shape> allShapes = Shape.getAllShapes();
         Set<String> pageNames = new HashSet<>(Arrays.asList(getPageNames()));
         Set<String> shapeNames = new HashSet<>(Arrays.asList(getShapeNames()));
         Set<String> validActions = new HashSet<>(Arrays.asList(scriptActions));
@@ -1181,7 +1209,9 @@ public class GameEditor extends AppCompatActivity {
                         if (!shapeNames.contains(shapeName)) {
                             String invalidState = shape.getName() + " contains invalid script trigger <"
                                     + trigger + "> since shape " + shapeName + " does not exist.";
-                            invalidStates.add(invalidState);
+                            if (!invalidStates.contains(invalidState)) {
+                                invalidStates.add(invalidState);
+                            }
                         }
                     }
                 }
@@ -1205,13 +1235,17 @@ public class GameEditor extends AppCompatActivity {
                                 if (!pageNames.contains(portion)) {
                                     String invalidState = shape.getName() + " contains invalid script action "
                                             + "goto <" + portion + "> since page " + portion + " does not exist.";
-                                    invalidStates.add(invalidState);
+                                    if (!invalidStates.contains(invalidState)) {
+                                        invalidStates.add(invalidState);
+                                    }
                                 }
                             } else if (prevCommand.equals("hide")) { // currently a shape
                                 if (!shapeNames.contains(portion)) {
                                     String invalidState = shape.getName() + " contains invalid script action " +
                                             "hide <" + portion + "> since shape " + portion + " does not exist.";
-                                    invalidStates.add(invalidState);
+                                    if (!invalidStates.contains(invalidState)) {
+                                        invalidStates.add(invalidState);
+                                    }
                                 }
                             }
                             // Note: play corresponds to a sound, and those are guaranteed
@@ -1219,6 +1253,45 @@ public class GameEditor extends AppCompatActivity {
                         }
 
                     }
+                }
+            }
+        }
+
+        // validate that shapes have unique names
+        for (Shape currShape : allShapes) {
+            for (Shape otherShape : allShapes) {
+                if (!currShape.equals(otherShape) && currShape.getName().equals(otherShape.getName())) {
+                    String invalidState = "The following shape name is not unique: " + currShape.getName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // validate that pages have unique names
+        for (Page currPage : allPages) {
+            for (Page otherPage : allPages) {
+                if (!currPage.equals(otherPage) && currPage.getPageName().equals(otherPage.getPageName())) {
+                    String invalidState = "The following page name is not unique: " + currPage.getPageName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // validate page and shape names are unique with respect to each other
+        for (Page currPage: allPages) {
+            for (Shape shape : allShapes) {
+                if (currPage.getPageName().equals(shape.getName())) {
+                    String invalidState = "The following page name is not unique (conflict with a shape): " + currPage.getPageName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
                 }
             }
         }
@@ -1270,6 +1343,7 @@ public class GameEditor extends AppCompatActivity {
 
         CanvasView canvasView = findViewById(R.id.canvas); // make it redraw after they set it
         canvasView.invalidate();
+
         Toast toast = Toast.makeText(getApplicationContext(), "The background has been set!", Toast.LENGTH_SHORT);
         toast.show();
     }
@@ -1290,40 +1364,99 @@ public class GameEditor extends AppCompatActivity {
     }
 
 
-    // for undo page delete support
-    public void undoPageDelete() {
-        if (!deletedPages.empty()) {
-            Page returnedPage = deletedPages.pop();
-            Page.getPages().add(returnedPage);
-
-            for (Shape shape : returnedPage.getShapes()) {
-                Shape.getAllShapes().add(shape);
-            }
-
+    // for undo shape changes support (or deletions)
+    public void undoShapeChanges(MenuItem menuItem) {
+        if (!undoShapeStack.isEmpty()) {
+            ShapeEvent lastEvent = undoShapeStack.pop();
+            Log.d("undoing...", lastEvent.toString());
+            lastEvent.undoEvent(findViewById(android.R.id.content));
+            CanvasView canvasView = findViewById(R.id.canvas);
+            canvasView.invalidate();
         }
     }
 
-    // for undo shape delete support
-    public void undoShapeDelete() {
-        if (!deletedShapes.empty()) {
-            Shape.getAllShapes().add(deletedShapes.pop());
-        }
-    }
 
-    // for undo shape changes support
-    public void undoShapeChanges() {
-        if (lastShapeConfig != null) {
-            // update shape
-            for (Shape shape : currPage.getShapes()) {
-                if (lastShapeConfig.getName().equals(shape.getName())) {
-                    currPage.getShapes().remove(shape);
-                    currPage.getShapes().add(lastShapeConfig);
-                    break;
+    // static inner class for undoing shape events
+    // supports:
+    //  -undoing add shapes
+    //  -undoing delete shapes
+    //  -undoing any changes to shapes (includes drag/drop)
+    public static class ShapeEvent {
+        private int type;
+        private Shape affectedShape;
+
+        public ShapeEvent(int type, Shape affectedShape) {
+            this.type = type;
+            this.affectedShape = affectedShape;
+        }
+
+        public void undoEvent(View view) {
+            if (type == ADD_SHAPE) {
+                currPage.getShapes().remove(affectedShape);
+                Shape.getAllShapes().remove(affectedShape);
+
+                LinearLayout objProperties = view.findViewById(R.id.obj_properties);
+                objProperties.setVisibility(View.GONE);
+
+                TextView clickObj = view.findViewById(R.id.click_obj);
+                clickObj.setVisibility(View.VISIBLE);
+
+            } else if (type == DELETE_SHAPE) {
+                currPage.getShapes().add(affectedShape);
+                Shape.getAllShapes().add(affectedShape);
+
+                LinearLayout objProperties = view.findViewById(R.id.obj_properties);
+                objProperties.setVisibility(View.VISIBLE);
+
+                TextView clickObj = view.findViewById(R.id.click_obj);
+                clickObj.setVisibility(View.GONE);
+                selectedShape = currPage.getShapes().size() - 1;
+
+            } else if (type == MISC_SHAPE_CONFIG) {
+                // updating the shape itself so this carries over to the reference to
+                // shape in Shape.getAllShapes
+                boolean wasNameChange = false;
+                for (Shape shape : currPage.getShapes()) {
+                    // need to look at stored shape hash (clones have same hash ivar as
+                    // the obj they were cloned from) since it is the only consistent
+                    // property (names will change)
+                    if (affectedShape.getShapeHash() == shape.getShapeHash()) {
+                        if (!affectedShape.getName().equals(shape.getName())) wasNameChange = true;
+                        shape.consume(affectedShape);
+                        break;
+                    }
+                }
+
+                // if the name was changed, update the side panel to display change
+                if (wasNameChange) {
+                    final Shape curr = currPage.getShapes().get(selectedShape);
+                    TextView objName = view.findViewById(R.id.obj_name);
+                    objName.setText(curr.getName());
                 }
             }
-
-            // set back to null
-            lastShapeConfig = null;
         }
-    }
+
+        public int getType() {
+            return type;
+        }
+
+        public Shape getShape() {
+            return affectedShape;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder ret = new StringBuilder();
+            if (type == ADD_SHAPE) {
+                ret.append("ADD SHAPE EVENT: ");
+            } else if (type == DELETE_SHAPE) {
+                ret.append("DELETE SHAPE EVENT: ");
+            } else if (type == MISC_SHAPE_CONFIG) {
+                ret.append("MISC SHAPE CONFIG EVENT: ");
+            }
+            ret.append(affectedShape.toString());
+            return ret.toString();
+
+        }
+    } // end ShapeEvent
 }

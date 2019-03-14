@@ -25,6 +25,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import static edu.stanford.cs108.bunnyworld.GameEditor.undoShapeStack;
+
 public class CanvasView extends View {
 
     ArrayList<Shape> pageShapes;
@@ -115,16 +117,14 @@ public class CanvasView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 xDown = event.getX();
                 yDown = event.getY();
                 System.out.println(selectedResource);
-                View resource = ((GameEditor)getContext()).findViewById(selectedResource);
+                View resource = ((GameEditor) getContext()).findViewById(selectedResource);
 
-                if (resource != null && selectedResource != - 1 && selectedResource != 0) {
+                if (resource != null && selectedResource != -1 && selectedResource != 0) {
 
                     System.out.println(resource);
 
@@ -138,6 +138,10 @@ public class CanvasView extends View {
 
                     Shape curr = pageShapes.get(selectedShape);
 
+                    // undo support
+                    GameEditor.ShapeEvent shapeEvent = new GameEditor.ShapeEvent(GameEditor.MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                    undoShapeStack.push(shapeEvent);
+
                     offsetX = xDown - curr.getX();
                     offsetY = yDown - curr.getY();
 
@@ -149,10 +153,11 @@ public class CanvasView extends View {
                 }
 
                 invalidate();
+                break;
+
             case MotionEvent.ACTION_MOVE:
 
                 if (selectedShape != -1) {
-
                     Shape curr = pageShapes.get(selectedShape);
 
                     float mouseX = event.getX();
@@ -258,9 +263,34 @@ public class CanvasView extends View {
                     }
 
                     invalidate();
+                    break;
 
                 }
 
+            case MotionEvent.ACTION_UP:
+                // if the action we added didn't change any properties of the shape
+                // we can remove it from undo stack
+                // in all the cases where this matters, the shape we are looking at is selected
+                if (selectedShape != -1) {
+                    Shape curr = pageShapes.get(selectedShape);
+                    if (!undoShapeStack.isEmpty()) {
+                        GameEditor.ShapeEvent lastEvent = undoShapeStack.peek();
+                        Shape affectedShape = lastEvent.getShape();
+                        if (lastEvent.getType() == GameEditor.MISC_SHAPE_CONFIG
+                                && affectedShape.getWidth() == curr.getWidth()
+                                && affectedShape.getHeight() == curr.getHeight()
+                                && affectedShape.getX() == curr.getX()
+                                && affectedShape.getY() == curr.getY()) {
+                            undoShapeStack.pop();
+                        }
+                    }
+                }
+
+                Log.d("what", "STACK STATE:" + undoShapeStack.size());
+                for (GameEditor.ShapeEvent ev : undoShapeStack) {
+                    Log.d("what", ev.toString());
+                }
+                break;
         }
 
         return true;
@@ -319,13 +349,12 @@ public class CanvasView extends View {
         Shape newShape = new Shape();
         newShape.setName(getResources().getString(R.string.shape) + (Shape.getAllShapes().size() + 1));
 
-
-
         int width = resource.getWidth();
         int height = resource.getHeight();
 
         float newX = xDown - width/2;
         float newY = yDown - height/2;
+
 
         if (newX >= 0 && newX + width <= windowWidth) {
             newShape.setX(newX);
@@ -395,6 +424,10 @@ public class CanvasView extends View {
         if (imgName.equals("greybox")) {
             newShape.setImgName("");
         }
+
+        // undo support
+        GameEditor.ShapeEvent event = new GameEditor.ShapeEvent(GameEditor.ADD_SHAPE, newShape);
+        undoShapeStack.push(event);
 
         pageShapes.add(newShape);
 

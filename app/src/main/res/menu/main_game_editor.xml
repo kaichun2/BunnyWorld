@@ -6,6 +6,21 @@
     >
 
     <item
+        android:title="@string/undo_shape_changes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:showAsAction="always"
+        />
+
+    <item
+        android:id="@+id/undo_delete_page"
+        android:title=""
+        android:icon="@drawable/ic_undo_black_24dp"
+        app:showAsAction="always"
+        android:onClick="undoShapeChanges"
+        />
+
+    <item
         android:title="@string/error_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
