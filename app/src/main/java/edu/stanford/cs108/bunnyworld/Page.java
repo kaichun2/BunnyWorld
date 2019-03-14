@@ -45,6 +45,7 @@ public class Page {
     private String backgroundImage;   /* Background image for current page. */
     private HashMap<String, Integer> backgroundMap; /* Maps background images to their drawables. */
 
+
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
     /* In sequential order of Page IDs due to how database is structured. */
@@ -69,7 +70,9 @@ public class Page {
         this.backgroundImage = "";
         backgroundMap = new HashMap<String, Integer>();
         allPages.add(this);
+
         loadBackgroundImages();
+
     }
 
     // a default constructor -> don't add to allPages
@@ -647,6 +650,8 @@ public class Page {
         }
         return ret.toString();
     }
+
+
 
 //    public static void test(Context context) {
 //        Page.loadDatabase(context, SAMPLE_DATA_FILE);
