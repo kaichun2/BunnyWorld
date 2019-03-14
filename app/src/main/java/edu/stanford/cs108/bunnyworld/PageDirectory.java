@@ -300,4 +300,7 @@ public class PageDirectory extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.page_dir_editor, menu);
         return super.onCreateOptionsMenu(menu);
     }
+
+    public void undoPageDelete(MenuItem item) {
+    }
 }
