@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 public class GameEditor extends AppCompatActivity {
 
@@ -65,6 +66,14 @@ public class GameEditor extends AppCompatActivity {
     static float RESOURCE_OFFSET = 30;
     static int actionBarHeight;
 
+    // for undo support (when page is removed)
+    private Stack<Page> deletedPages;
+
+    // for undo support (when shape is removed)
+    private Stack<Shape> deletedShapes;
+
+    // for undo shape changes
+    private Shape lastShapeConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +172,10 @@ public class GameEditor extends AppCompatActivity {
         actionBarHeight = getResources().getDimensionPixelSize(tv.resourceId);
 
         RESOURCE_BOUNDARY = windowHeight * 3.0f / 4.0f - actionBarHeight - RESOURCE_OFFSET;
+
+        deletedPages = new Stack<>();
+        deletedShapes = new Stack<>();
+        lastShapeConfig = null;
 
     }
 
@@ -434,6 +447,7 @@ public class GameEditor extends AppCompatActivity {
                         finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
 
 
+                        lastShapeConfig = (Shape) curr.clone();
                         curr.setScript(finalScript.trim());
 
                         // since we updated a script, let user know that they should check for errors
@@ -540,6 +554,9 @@ public class GameEditor extends AppCompatActivity {
                             EditText newText = (EditText) ((AlertDialog) property).findViewById(R.id.editable_text_string);
                             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
+
+                            // for undo shape changes support
+                            lastShapeConfig = (Shape) curr.clone();
 
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
@@ -925,6 +942,9 @@ public class GameEditor extends AppCompatActivity {
                         Shape.getAllShapes().remove(curr);
                         selectedShape = -1;
 
+                        // for undo support
+                        deletedShapes.push(curr);
+
                         // since we deleted a shape, let user know that they should check for errors
                         isError = "unchecked";
                         invalidateOptionsMenu();
@@ -989,6 +1009,14 @@ public class GameEditor extends AppCompatActivity {
 
                                 removedID++;
                             }
+
+                            // delete all the shapes on this page too
+                            for (Shape shape : currPage.getShapes()) {
+                                Shape.getAllShapes().remove(shape);
+                            }
+
+                            // for undo support
+                            deletedPages.push(currPage);
 
                             onBackPressed();
                             delete.dismiss();
@@ -1259,5 +1287,43 @@ public class GameEditor extends AppCompatActivity {
 
     public void pasteShape(MenuItem menuItem) {
 
+    }
+
+
+    // for undo page delete support
+    public void undoPageDelete() {
+        if (!deletedPages.empty()) {
+            Page returnedPage = deletedPages.pop();
+            Page.getPages().add(returnedPage);
+
+            for (Shape shape : returnedPage.getShapes()) {
+                Shape.getAllShapes().add(shape);
+            }
+
+        }
+    }
+
+    // for undo shape delete support
+    public void undoShapeDelete() {
+        if (!deletedShapes.empty()) {
+            Shape.getAllShapes().add(deletedShapes.pop());
+        }
+    }
+
+    // for undo shape changes support
+    public void undoShapeChanges() {
+        if (lastShapeConfig != null) {
+            // update shape
+            for (Shape shape : currPage.getShapes()) {
+                if (lastShapeConfig.getName().equals(shape.getName())) {
+                    currPage.getShapes().remove(shape);
+                    currPage.getShapes().add(lastShapeConfig);
+                    break;
+                }
+            }
+
+            // set back to null
+            lastShapeConfig = null;
+        }
     }
 }

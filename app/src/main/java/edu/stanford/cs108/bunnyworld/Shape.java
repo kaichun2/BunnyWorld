@@ -29,7 +29,7 @@ import org.json.simple.JSONObject;
  * If you are in an activity, just pass in "this" keyword.
  * If you are in a View, pass in getContext().
  */
-public class Shape {
+public class Shape implements Cloneable {
 
     private String name;         /* Name of shape. Must be unique to all pages. */
     private String imgName;      /* Name of image (in drawable, no extension). */
@@ -86,6 +86,18 @@ public class Shape {
         /* Default values, all attributes should be set using setters. */
         this("", -1.0f, -1.0f, -1.0f, -1.0f, "", "",
                 -1,null, true, false);
+    }
+
+    // needed for undo support, making it possible
+    // to make copies of shapes
+    public Object clone() {
+        Object clone = null;
+        try {
+            clone = super.clone();
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace();
+        }
+        return clone;
     }
 
     // init drawables and map the imgNames to the respective drawables
