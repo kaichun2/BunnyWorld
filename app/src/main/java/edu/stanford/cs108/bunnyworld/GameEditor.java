@@ -84,6 +84,9 @@ public class GameEditor extends AppCompatActivity {
     static int GALLERY_REQUEST = 1;
     static int actionBarHeight;
 
+
+    boolean isCut;
+
     // for undo support (when page is removed)
     // we initialize it here since if we did it in constructor
     // we would not be able to maintain multiple pages since onCreate
@@ -100,6 +103,7 @@ public class GameEditor extends AppCompatActivity {
     public static final int ADD_SHAPE = 1;
     public static final int DELETE_SHAPE = 2;
     public static final int MISC_SHAPE_CONFIG = 3;
+
 
 
     @Override
@@ -1406,15 +1410,34 @@ public class GameEditor extends AppCompatActivity {
     // this to be registered as an onClick but you don't actually
     // have to do anything with it!)
     public void copyShape(MenuItem menuItem) {
+        for (Page p : Page.getPages()) {
+            p.setClipboardPage(getCurrPage().getPageID());
+        }
+        currPage.setClipboardShape(selectedShape);
 
+        isCut = false;
     }
 
     public void cutShape(MenuItem menuItem) {
-
+        for (Page p : Page.getPages()) {
+            p.setClipboardPage(getCurrPage().getPageID());
+        }
+        currPage.setClipboardShape(selectedShape);
+        isCut = true;
     }
 
     public void pasteShape(MenuItem menuItem) {
 
+        int cbPageID = currPage.getClipboardPage();
+        Page from = Page.getPages().get(cbPageID - 1);
+        Page to = currPage;
+        for(Page p : Page.getPages()) {
+            if (p.getClipboardShape() != -1) {
+                to.getShapes().add(from.getShapes().get(from.getClipboardShape()));
+                from.getShapes().remove(from.getClipboardShape());
+            }
+            p.setClipboardShape(-1);
+        }
     }
 
 
