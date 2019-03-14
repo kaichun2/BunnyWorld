@@ -1250,6 +1250,44 @@ public class GameEditor extends AppCompatActivity {
         return invalidStates;
     }
 
+    // TODO: working on changing background functionality
+    public void changeBackground(MenuItem item) {
+        switch(item.getItemId()) {
+            case (R.id.redbg):
+                System.out.println("red clicked bishhh");
+                currPage.setBackgroundImage("redsquare.png");
+                break;
+                // do red background
+            case (R.id.orangebg):
+                // do orange background
+                currPage.setBackgroundImage("orangesquare.png");
+                break;
+            case (R.id.yellowbg):
+                currPage.setBackgroundImage("yellowsquare.jpg");
+                break;
+                // do yellow bg
+            case (R.id.greenbg):
+                currPage.setBackgroundImage("greensquare.png");
+                break;
+                // do green bg
+            case (R.id.bluebg):
+                // do blue background
+                currPage.setBackgroundImage("bluesquare.png");
+                break;
+            case (R.id.purplebg):
+                currPage.setBackgroundImage("purplesquare.png");
+                System.out.println("always purple?");
+                break;
+                // do purple bg
+            default:
+                currPage.setBackgroundImage("");
+        }
+
+        CanvasView canvasView = findViewById(R.id.canvas); // make it redraw after they set it
+        canvasView.invalidate();
+        Toast toast = Toast.makeText(getApplicationContext(), "The background has been set!", Toast.LENGTH_SHORT);
+        toast.show();
+    }
 
     // TODO rena (note that you need the menuItem argument for
     // this to be registered as an onClick but you don't actually
@@ -1265,6 +1303,4 @@ public class GameEditor extends AppCompatActivity {
     public void pasteShape(MenuItem menuItem) {
 
     }
-
-
 }

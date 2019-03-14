@@ -43,6 +43,7 @@ public class Page {
     private int pageID;               /* Sequential Page ID. (May be useful later for extensions. */
     private ArrayList<Shape> shapes;  /* List of all shapes associated with this page. */
     private String backgroundImage;   /* Background image for current page. */
+    private HashMap<String, Integer> backgroundMap; /* Maps background images to their drawables. */
 
 
     /* User can access all the pages across all the pages using Page.getAllPages(). */
@@ -66,7 +67,11 @@ public class Page {
         this.pageName = pageName;
         this.pageID = pageID;
         this.shapes = shapes;
+        this.backgroundImage = "";
+        backgroundMap = new HashMap<String, Integer>();
         allPages.add(this);
+
+        loadBackgroundImages();
 
     }
 
@@ -104,7 +109,24 @@ public class Page {
 
     public String getBackgroundImage() { return backgroundImage; }
 
+    public Integer getImage(String image) {
+        if (backgroundMap.containsKey(image)) {
+            return backgroundMap.get(image);
+        } else {
+            return -1;
+        }
+    }
+
     public void setBackgroundImage(String imgStr) { backgroundImage = imgStr; }
+
+    private void loadBackgroundImages() {
+        backgroundMap.put("redsquare.png", R.drawable.redsquare);
+        backgroundMap.put("orangesquare.png", R.drawable.orangesquare);
+        backgroundMap.put("yellowsquare.jpg", R.drawable.yellowsquare);
+        backgroundMap.put("greensquare.png", R.drawable.greensquare);
+        backgroundMap.put("bluesquare.png", R.drawable.bluesquare);
+        backgroundMap.put("purplesquare.png", R.drawable.purplesquare);
+    }
 
     public static ArrayList<Shape> getPossessions() { return possessions; }
 
@@ -321,7 +343,15 @@ public class Page {
                 float yLoc = Float.parseFloat((String) textObj.get("yLoc"));
                 int fontSize = Integer.parseInt((String) textObj.get("fontSize"));
                 String text = (String) textObj.get("text");
+                boolean bold = (boolean) textObj.get("bold");
+                boolean italic = (boolean) textObj.get("italic");
+                boolean underline = (boolean) textObj.get("underline");
+                int color = (int) (long) textObj.get("color");
                 shape.setShapeText(xLoc, yLoc, fontSize, text);
+                shape.getShapeText().setBold(bold);
+                shape.getShapeText().setItalic(italic);
+                shape.getShapeText().setUnderline(underline);
+                shape.getShapeText().setColor(color);
             }
             pageShapes.add(shape);
         }

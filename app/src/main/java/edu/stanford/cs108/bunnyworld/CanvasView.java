@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -67,6 +68,7 @@ public class CanvasView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        addBackground(canvas);
 
         if (pageShapes == null) {
             pageShapes = GameEditor.getCurrPage().getShapes();
@@ -453,7 +455,19 @@ public class CanvasView extends View {
 
     }
 
-
+    public void addBackground(Canvas canvas) {
+        // the page stores the background image in a string
+        String backgroundImage = GameEditor.getCurrPage().getBackgroundImage();
+        if (backgroundImage.equals("")) return;
+        //System.out.println("Setting background: " + backgroundImage);
+        int imageFile = GameEditor.getCurrPage().getImage(backgroundImage);
+        if (imageFile != -1) {
+            //System.out.println("image file: " + imageFile);
+            Drawable draw = getResources().getDrawable(imageFile);
+            draw.setBounds(0, 0, getWidth(), getHeight());
+            draw.draw(canvas);
+        }
+    }
 
     public void copyShape(View view) {
 
@@ -466,6 +480,4 @@ public class CanvasView extends View {
     public void pasteShape(View view) {
 
     }
-
-
 }
