@@ -346,12 +346,12 @@ public class Page {
                 boolean bold = (boolean) textObj.get("bold");
                 boolean italic = (boolean) textObj.get("italic");
                 boolean underline = (boolean) textObj.get("underline");
-                int color = (int) (long) textObj.get("color");
+                int color = Integer.parseInt((String) textObj.get("color"));
                 shape.setShapeText(xLoc, yLoc, fontSize, text);
                 shape.getShapeText().setBold(bold);
                 shape.getShapeText().setItalic(italic);
                 shape.getShapeText().setUnderline(underline);
-                shape.getShapeText().setColor(color);
+                shape.getShapeText().setTColor(color);
             }
             pageShapes.add(shape);
         }
