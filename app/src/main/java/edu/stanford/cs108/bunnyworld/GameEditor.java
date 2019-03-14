@@ -73,7 +73,7 @@ public class GameEditor extends AppCompatActivity {
     static int selectedShape;
     String gameName;
     private String triggers[] = {"on click", "on enter", "on drop", "property" };
-    private String scriptActions[] = {"goto", "play", "hide", "show"};
+    static public String scriptActions[] = {"goto", "play", "hide", "show"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
     String isError = "unchecked";
     static float MINIMUM_SIZE = 30;
@@ -514,7 +514,7 @@ public class GameEditor extends AppCompatActivity {
 
     }
 
-    private String[] getPageNames() {
+    static public String[] getPageNames() {
         ArrayList<Page> allPages = Page.getPages();
 
         String[] pageNames = new String[allPages.size()];
@@ -526,7 +526,7 @@ public class GameEditor extends AppCompatActivity {
         return pageNames;
     }
 
-    private String[] getShapeNames() {
+    static public String[] getShapeNames() {
         ArrayList<Shape> allShapes = Shape.getAllShapes();
 
         String[] shapeNames = new String[allShapes.size()];

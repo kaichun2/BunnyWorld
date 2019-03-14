@@ -22,7 +22,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.GridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import android.content.Intent;
@@ -36,6 +40,7 @@ public class PageDirectory extends AppCompatActivity {
     public static final String GAME = "game";
     public static final String PATH = "/data/user/0/edu.stanford.cs108.bunnyworld/app_resourceDir";
     String gameName;
+    String isError = "unchecked";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -322,6 +327,18 @@ public class PageDirectory extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.page_dir_editor, menu);
+
+        MenuItem errorButton = menu.findItem(R.id.error_button_page);
+        Button error = (Button) errorButton.getActionView();
+        error.setText(R.string.check_errors);
+        error.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList<String> invalidStates = runErrorTestPage();
+                showStatus(invalidStates);
+            }
+        });
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -340,4 +357,180 @@ public class PageDirectory extends AppCompatActivity {
         // restart activity
         onResume();
     }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem errorIcon = menu.findItem(R.id.error_icon_page);
+        if (isError.equals("unchecked")) {
+            errorIcon.setIcon(R.drawable.ic_refresh_black_24dp);
+        } else if (isError.equals("errors")) {
+            errorIcon.setIcon(R.drawable.ic_error_black_24dp);
+        } else if (isError.equals("no errors")) {
+            errorIcon.setIcon(R.drawable.ic_check_circle_black_24dp);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    public ArrayList<String> runErrorTestPage() {
+        ArrayList<Page> allPages = Page.getPages();
+        ArrayList<Shape> allShapes = Shape.getAllShapes();
+        Set<String> pageNames = new HashSet<>(Arrays.asList(GameEditor.getPageNames()));
+        Set<String> shapeNames = new HashSet<>(Arrays.asList(GameEditor.getShapeNames()));
+        Set<String> validActions = new HashSet<>(Arrays.asList(GameEditor.scriptActions));
+
+        ArrayList<String> invalidStates = new ArrayList<>(); // reset old states and run test from scratch
+        for (Page page : allPages) {
+            for (Shape shape : page.getShapes()) {
+                HashMap<String, String> commands = shape.getCommands();
+
+                // validate on drop <shape-name> s.t. shape-name exists for current shape
+                for (String trigger : commands.keySet()) {
+                    Log.d("dog", "verifying... " + trigger);
+                    if (trigger.startsWith("on drop")) {
+                        String shapeName = trigger.substring("on drop".length() + 1);
+                        Log.d("dog", shapeName + " is the shape name");
+                        if (!shapeNames.contains(shapeName)) {
+                            String invalidState = shape.getName() + " contains invalid script trigger <"
+                                    + trigger + "> since shape " + shapeName + " does not exist.";
+                            if (!invalidStates.contains(invalidState)) {
+                                invalidStates.add(invalidState);
+                            }
+                        }
+                    }
+                }
+
+                // validate each command in rest of script is valid (note that only on drop trigger
+                // references other objects, and since we enforce correct triggers in UI design,
+                // we know the other triggers are valid (onclick, onenter)
+                for (String command : commands.values()) {
+                    // iterate through diff pieces of command, note that this assumes
+                    // page and shape names have no spaces
+                    String prevCommand = ""; // will be used to differentiate b/w pages and shapes
+                    for (String portion : command.split(" ")) {
+                        // note that the script triggers and primitives should also be
+                        // restricted as shape/page names!
+                        if (validActions.contains(portion)) {
+                            prevCommand = portion;
+                        } else {
+                            // note that prevCommand is guaranteed to be one of the following
+                            // cases by design (actions come before page/shape)
+                            if (prevCommand.equals("goto")) { // currently a page
+                                if (!pageNames.contains(portion)) {
+                                    String invalidState = shape.getName() + " contains invalid script action "
+                                            + "goto <" + portion + "> since page " + portion + " does not exist.";
+                                    if (!invalidStates.contains(invalidState)) {
+                                        invalidStates.add(invalidState);
+                                    }
+                                }
+                            } else if (prevCommand.equals("hide")) { // currently a shape
+                                if (!shapeNames.contains(portion)) {
+                                    String invalidState = shape.getName() + " contains invalid script action " +
+                                            "hide <" + portion + "> since shape " + portion + " does not exist.";
+                                    if (!invalidStates.contains(invalidState)) {
+                                        invalidStates.add(invalidState);
+                                    }
+                                }
+                            }
+                            // Note: play corresponds to a sound, and those are guaranteed
+                            //       to be valid given the way the UI is designed :)
+                        }
+
+                    }
+                }
+            }
+        }
+
+        // validate that shapes have unique names
+        for (Shape currShape : allShapes) {
+            for (Shape otherShape : allShapes) {
+                if (!currShape.equals(otherShape) && currShape.getName().equals(otherShape.getName())) {
+                    String invalidState = "The following shape name is not unique: " + currShape.getName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // validate that pages have unique names
+        for (Page currPage : allPages) {
+            for (Page otherPage : allPages) {
+                if (!currPage.equals(otherPage) && currPage.getPageName().equals(otherPage.getPageName())) {
+                    String invalidState = "The following page name is not unique: " + currPage.getPageName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // validate page and shape names are unique with respect to each other
+        for (Page currPage: allPages) {
+            for (Shape shape : allShapes) {
+                if (currPage.getPageName().equals(shape.getName())) {
+                    String invalidState = "The following page name is not unique (conflict with a shape): " + currPage.getPageName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // "unchecked" is initial default value and is set periodically
+        // as the user makes changes to the pages and shapes
+        if (invalidStates.isEmpty()) {
+            isError = "no errors";
+        } else {
+            isError = "errors";
+        }
+
+        invalidateOptionsMenu();
+        return invalidStates;
+    }
+
+    public void showStatus(ArrayList<String> invalidStates) {
+        // isError corresponds to currently displayed item
+        final AlertDialog.Builder errorIconDialog = new AlertDialog.Builder(PageDirectory.this);
+        errorIconDialog.setTitle("Current error status:");
+
+        String message = "";
+        switch (isError) {
+            case "unchecked": // currently unreachable since they have to validate game to see dialog
+                message = "Check Errors to validate current state of game.";
+                break;
+            case "errors":
+                message = "The following issues were detected: ";
+                for (String invalidState : invalidStates) {
+                    message += "\n\n" + invalidState;
+                }
+                break;
+            case "no errors":
+                message = "No errors were detected. Safe to save.";
+                break;
+        }
+        errorIconDialog.setMessage(message);
+
+        errorIconDialog.setPositiveButton("OK", null);
+        final AlertDialog errorIconD = errorIconDialog.create();
+        errorIconD.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button ok = errorIconD.getButton(AlertDialog.BUTTON_POSITIVE);
+                ok.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        errorIconD.dismiss();
+                    }
+                });
+            }
+        });
+
+        errorIconD.show();
+    }
+
 }
