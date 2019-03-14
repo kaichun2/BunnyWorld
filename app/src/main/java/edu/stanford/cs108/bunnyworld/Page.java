@@ -45,6 +45,7 @@ public class Page {
     private String backgroundImage;   /* Background image for current page. */
     private HashMap<String, Integer> backgroundMap; /* Maps background images to their drawables. */
 
+
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
     /* In sequential order of Page IDs due to how database is structured. */
@@ -69,7 +70,9 @@ public class Page {
         this.backgroundImage = "";
         backgroundMap = new HashMap<String, Integer>();
         allPages.add(this);
+
         loadBackgroundImages();
+
     }
 
     // a default constructor -> don't add to allPages
@@ -217,6 +220,7 @@ public class Page {
         Shape.getAllShapes().clear();
 
         String json = getDataFromFile(context, nameOfGame + ".json");
+        Log.d("game", json);
         loadDatabaseFromJSONString(context, json);
     }
 
@@ -239,6 +243,13 @@ public class Page {
                 // create new page, added automatically to static arr of pages
                 Page newPage = new Page(page_name, page_id, shapes);
                 newPage.setBackgroundImage(backgroundImg);
+            }
+
+            /* Add Tassica's imported resources array. */
+            JSONArray importedResources = (JSONArray) data.get("imported_resources");
+            Iterator<String> it2 = importedResources.iterator();
+            while (it2.hasNext()) {
+                Shape.importedResources.add(it2.next());
             }
 
             /* Load possessions inventory into array of shapes. */
@@ -343,12 +354,12 @@ public class Page {
                 boolean bold = (boolean) textObj.get("bold");
                 boolean italic = (boolean) textObj.get("italic");
                 boolean underline = (boolean) textObj.get("underline");
-                int color = (int) (long) textObj.get("color");
+                int color = Integer.parseInt(String.valueOf(textObj.get("color")));
                 shape.setShapeText(xLoc, yLoc, fontSize, text);
                 shape.getShapeText().setBold(bold);
                 shape.getShapeText().setItalic(italic);
                 shape.getShapeText().setUnderline(underline);
-                shape.getShapeText().setColor(color);
+                shape.getShapeText().setTColor(color);
             }
             pageShapes.add(shape);
         }
@@ -422,6 +433,10 @@ public class Page {
         gameObj.put("num_possessions", String.valueOf(possessions.size()));
         gameObj.put("possessions", getPossessionsJSON());
 
+        /* importedResources array */
+        JSONArray arr = new JSONArray();
+        arr.addAll(Shape.importedResources);
+        gameObj.put("imported_resources", prettyPrintJSON(arr));
 
         /* Have JSONObject parse that dictionary into a JSON format. */
         gameJSON.putAll(gameObj);
@@ -647,6 +662,8 @@ public class Page {
         }
         return ret.toString();
     }
+
+
 
 //    public static void test(Context context) {
 //        Page.loadDatabase(context, SAMPLE_DATA_FILE);

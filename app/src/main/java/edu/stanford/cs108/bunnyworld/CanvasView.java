@@ -24,6 +24,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import static edu.stanford.cs108.bunnyworld.GameEditor.undoShapeStack;
 
@@ -488,7 +489,7 @@ public class CanvasView extends View {
 
     }
 
-    public void addBackground(Canvas canvas) {
+    private void addBackground(Canvas canvas) {
         // the page stores the background image in a string
         String backgroundImage = GameEditor.getCurrPage().getBackgroundImage();
         if (backgroundImage.equals("")) return;

@@ -1,12 +1,20 @@
 package edu.stanford.cs108.bunnyworld;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
@@ -30,6 +39,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Spinner;
@@ -39,6 +49,12 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,6 +81,7 @@ public class GameEditor extends AppCompatActivity {
 
     static float RESOURCE_BOUNDARY = 0;
     static float RESOURCE_OFFSET = 30;
+    static int GALLERY_REQUEST = 1;
     static int actionBarHeight;
 
     // for undo support (when page is removed)
@@ -156,8 +173,8 @@ public class GameEditor extends AppCompatActivity {
                 }
         );
 
-        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
-        drawResources(resources);
+
+        drawResources();
 
         selectedResource = -1;
 
@@ -297,7 +314,10 @@ public class GameEditor extends AppCompatActivity {
         errorIconD.show();
     }
 
-    private void drawResources(Map<String, BitmapDrawable> resources) {
+    private void drawResources() {
+        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
+
+
         LinearLayout resourceView = findViewById(R.id.resource_scroll);
 
         for (Map.Entry<String, BitmapDrawable> resource : resources.entrySet()) {
@@ -567,10 +587,16 @@ public class GameEditor extends AppCompatActivity {
                             // undo support
                             ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
                             undoShapeStack.push(event);
+                            //EditText color = (EditText) ((AlertDialog) property).findViewById(R.id.textColor);
+                            CheckBox bold = (CheckBox) ((AlertDialog) property).findViewById(R.id.boldOption);
+                            CheckBox italic = (CheckBox) ((AlertDialog) property).findViewById(R.id.italicOption);
+                            CheckBox ul = (CheckBox) ((AlertDialog) property).findViewById(R.id.underlineOption);
+                            RadioGroup rg = (RadioGroup) ((AlertDialog) property).findViewById(R.id.color_options);
 
                             curr.setMovable(isMovable.isChecked());
                             curr.setVisible(!isHidden.isChecked());
                             curr.setShapeText(newText.getText().toString());
+
 
                             String imgName = curr.getImgName();
                             if (!imgName.equals("texticon")) {
@@ -624,6 +650,21 @@ public class GameEditor extends AppCompatActivity {
                                 curr.getShapeText().setFontSize(Integer.parseInt(fontSize.getText().toString()));
                                 curr.setWidth(curr.getText().length() * curr.getShapeText().getFontSize() / 2);
                                 curr.setHeight(curr.getShapeText().getFontSize());
+
+                                //int col = Integer.parseInt(color.getText().toString());
+                                int col = Color.BLACK;
+                                int id = rg.getCheckedRadioButtonId();
+                                if (id  == R.id.red) {col = Color.RED; }
+                                else if (id  == R.id.yellow) {col = Color.YELLOW; }
+                                else if (id  == R.id.green) {col = Color.GREEN; }
+                                else if (id  == R.id.blue) {col = Color.BLUE; }
+                                else if (id  == R.id.magenta) {col = Color.MAGENTA; }
+                                else if (id  == R.id.gray) {col = Color.GRAY; }
+
+                                curr.getShapeText().setTColor(col);
+                                curr.getShapeText().setBold(bold.isChecked());
+                                curr.getShapeText().setItalic(italic.isChecked());
+                                curr.getShapeText().setUnderline(ul.isChecked());
                             }
 
 
@@ -660,6 +701,10 @@ public class GameEditor extends AppCompatActivity {
             LinearLayout fontLayout = ((AlertDialog) property).findViewById(R.id.font_layout);
             LinearLayout colorLayout = ((AlertDialog) property).findViewById(R.id.colorLayout);
             EditText fontSize = (EditText) ((AlertDialog) property).findViewById(R.id.font_size);
+            RadioGroup rg = (RadioGroup) ((AlertDialog) property).findViewById(R.id.color_options);
+            CheckBox bold = (CheckBox) ((AlertDialog) property).findViewById(R.id.boldOption);
+            CheckBox italic = (CheckBox) ((AlertDialog) property).findViewById(R.id.italicOption);
+            CheckBox ul = (CheckBox) ((AlertDialog) property).findViewById(R.id.underlineOption);
 
             String imgName = curr.getImgName();
             if (imgName.equals("texticon")) {
@@ -668,6 +713,21 @@ public class GameEditor extends AppCompatActivity {
                 colorLayout.setVisibility(View.VISIBLE);
                 hwLayout.setVisibility(View.GONE);
                 fontSize.setText(String.valueOf((curr.getShapeText().getFontSize())));
+
+                if(curr.getShapeText().getTColor() == Color.RED) rg.check(R.id.red);
+                else if(curr.getShapeText().getTColor() == Color.YELLOW) rg.check(R.id.yellow);
+                else if(curr.getShapeText().getTColor() == Color.GREEN) rg.check(R.id.green);
+                else if(curr.getShapeText().getTColor() == Color.BLUE) rg.check(R.id.blue);
+                else if(curr.getShapeText().getTColor() == Color.MAGENTA) rg.check(R.id.magenta);
+                else if(curr.getShapeText().getTColor() == Color.GRAY) rg.check(R.id.gray);
+                else rg.check(R.id.black);
+
+                bold.setChecked(curr.getShapeText().getBold());
+                italic.setChecked(curr.getShapeText().getItalic());
+                ul.setChecked(curr.getShapeText().getUnderline());
+
+
+
             } else {
                 textLayout.setVisibility(View.GONE);
                 fontLayout.setVisibility(View.GONE);
@@ -1308,35 +1368,29 @@ public class GameEditor extends AppCompatActivity {
         return invalidStates;
     }
 
-    // TODO: working on changing background functionality
+    // Ability to change the color of the background [extension].
     public void changeBackground(MenuItem item) {
         switch(item.getItemId()) {
             case (R.id.redbg):
-                System.out.println("red clicked bishhh");
                 currPage.setBackgroundImage("redsquare.png");
                 break;
-                // do red background
             case (R.id.orangebg):
-                // do orange background
                 currPage.setBackgroundImage("orangesquare.png");
                 break;
             case (R.id.yellowbg):
                 currPage.setBackgroundImage("yellowsquare.jpg");
                 break;
-                // do yellow bg
             case (R.id.greenbg):
                 currPage.setBackgroundImage("greensquare.png");
                 break;
-                // do green bg
             case (R.id.bluebg):
-                // do blue background
                 currPage.setBackgroundImage("bluesquare.png");
                 break;
             case (R.id.purplebg):
                 currPage.setBackgroundImage("purplesquare.png");
-                System.out.println("always purple?");
                 break;
-                // do purple bg
+            case (R.id.nobg):
+                currPage.setBackgroundImage("");
             default:
                 currPage.setBackgroundImage("");
         }
@@ -1459,4 +1513,110 @@ public class GameEditor extends AppCompatActivity {
 
         }
     } // end ShapeEvent
+
+    public void importResource(MenuItem item) {
+        Intent resourceIntent = new Intent(Intent.ACTION_PICK);
+        resourceIntent.setType("image/*");
+        startActivityForResult(resourceIntent, GALLERY_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        final Uri resourceUri = data.getData();
+        InputStream resourceStream = null;
+
+
+        if (resultCode == RESULT_OK) {
+            try {
+                resourceStream = getContentResolver().openInputStream(resourceUri);
+
+                final Bitmap selectedResource = BitmapFactory.decodeStream(resourceStream);
+                BitmapDrawable bitmap = new BitmapDrawable(getResources(), selectedResource);
+
+                String fileName = queryFileName(resourceUri);
+
+                saveToInternalStorage(selectedResource, fileName);
+
+                HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(this);
+                newResources.put(fileName, bitmap);
+                Shape.importedResources.add(fileName);
+
+                LinearLayout resourceView = findViewById(R.id.resource_scroll);
+                resourceView.removeAllViews();
+                drawResources();
+
+            } catch (FileNotFoundException e) {
+
+                e.printStackTrace();
+
+                Toast errorImport = Toast.makeText(getApplicationContext(), "Unable to import resource", Toast.LENGTH_SHORT);
+                errorImport.show();
+
+            } finally {
+                try {
+                    resourceStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else {
+            Toast emptyImport = Toast.makeText(getApplicationContext(), "No resource chosen", Toast.LENGTH_SHORT);
+            emptyImport.show();
+        }
+    }
+
+    private String queryFileName(Uri uri) {
+        Cursor returnCursor =
+                getContentResolver().query(uri, null, null, null, null);
+
+        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+
+        returnCursor.moveToFirst();
+        String fileName = returnCursor.getString(nameIndex);
+        returnCursor.close();
+        return fileName;
+    }
+
+    private String saveToInternalStorage(Bitmap bitmapImage, String fileName){
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+
+        File directory = cw.getDir("resourceDir", Context.MODE_PRIVATE);
+        File resourcePath = new File(directory, fileName);
+
+        FileOutputStream fileOS = null;
+
+        try {
+            fileOS = new FileOutputStream(resourcePath);
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fileOS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fileOS.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return directory.getAbsolutePath();
+    }
+
+    static public void loadResourceFromStorage(String path, String name, Context context) {
+
+        try {
+            File resourceFile = new File(path, name);
+
+            final Bitmap selectedImage = BitmapFactory.decodeStream(new FileInputStream(resourceFile));
+            BitmapDrawable bitmap = new BitmapDrawable(context.getResources(), selectedImage);
+
+            HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(context);
+            newResources.put(name, bitmap);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
