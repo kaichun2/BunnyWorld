@@ -3,6 +3,7 @@ package edu.stanford.cs108.bunnyworld;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.Log;
+import android.view.View;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -45,6 +46,8 @@ public class Page {
     private String backgroundImage;   /* Background image for current page. */
     private HashMap<String, Integer> backgroundMap; /* Maps background images to their drawables. */
 
+    private int clipboardPage;
+    private int clipboardShape;
 
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
@@ -72,6 +75,8 @@ public class Page {
         allPages.add(this);
 
         loadBackgroundImages();
+        clipboardShape = -1;
+        clipboardPage = -1;
 
     }
 
@@ -82,6 +87,9 @@ public class Page {
         this.pageID = -1;
         pageName = "";
         shapes = null;
+
+        clipboardShape = -1;
+        clipboardPage = -1;
     }
 
     @Override
@@ -108,6 +116,14 @@ public class Page {
     }
 
     public String getBackgroundImage() { return backgroundImage; }
+
+    public int getClipboardShape() { return clipboardShape; }
+
+    public void setClipboardShape(int i) {clipboardShape = i; }
+
+    public int getClipboardPage() { return clipboardPage; }
+
+    public void setClipboardPage(int i) {clipboardPage = i; }
 
     public Integer getImage(String image) {
         if (backgroundMap.containsKey(image)) {
@@ -351,7 +367,7 @@ public class Page {
                 shape.getShapeText().setBold(bold);
                 shape.getShapeText().setItalic(italic);
                 shape.getShapeText().setUnderline(underline);
-                shape.getShapeText().setColor(color);
+                shape.getShapeText().setTColor(color);
             }
             pageShapes.add(shape);
         }

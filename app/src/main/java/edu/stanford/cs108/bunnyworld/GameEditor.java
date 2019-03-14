@@ -67,6 +67,7 @@ public class GameEditor extends AppCompatActivity {
     static float RESOURCE_OFFSET = 30;
     static int actionBarHeight;
 
+    boolean isCut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1287,15 +1288,34 @@ public class GameEditor extends AppCompatActivity {
     // this to be registered as an onClick but you don't actually
     // have to do anything with it!)
     public void copyShape(MenuItem menuItem) {
+        for (Page p : Page.getPages()) {
+            p.setClipboardPage(getCurrPage().getPageID());
+        }
+        currPage.setClipboardShape(selectedShape);
 
+        isCut = false;
     }
 
     public void cutShape(MenuItem menuItem) {
-
+        for (Page p : Page.getPages()) {
+            p.setClipboardPage(getCurrPage().getPageID());
+        }
+        currPage.setClipboardShape(selectedShape);
+        isCut = true;
     }
 
     public void pasteShape(MenuItem menuItem) {
 
+        int cbPageID = currPage.getClipboardPage();
+        Page from = Page.getPages().get(cbPageID - 1);
+        Page to = currPage;
+        for(Page p : Page.getPages()) {
+            if (p.getClipboardShape() != -1) {
+                to.getShapes().add(from.getShapes().get(from.getClipboardShape()));
+                from.getShapes().remove(from.getClipboardShape());
+            }
+            p.setClipboardShape(-1);
+        }
     }
 
     public void undoShapeDelete(MenuItem item) {

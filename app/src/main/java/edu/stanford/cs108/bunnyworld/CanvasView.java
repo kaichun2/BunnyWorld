@@ -122,7 +122,7 @@ public class CanvasView extends View {
                 xDown = event.getX();
                 yDown = event.getY();
                 System.out.println(selectedResource);
-                View resource = ((GameEditor)getContext()).findViewById(selectedResource);
+                View resource = ((GameEditor) getContext()).findViewById(selectedResource);
 
                 if (resource != null && selectedResource != - 1 && selectedResource != 0) {
 
