@@ -6,7 +6,7 @@
     >
 
     <item
-        android:title="@string/undo_delete_shape"
+        android:title="@string/undo_shape_changes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:showAsAction="always"
@@ -17,7 +17,7 @@
         android:title=""
         android:icon="@drawable/ic_undo_black_24dp"
         app:showAsAction="always"
-        android:onClick="undoShapeDelete"
+        android:onClick="undoShapeChanges"
         />
 
     <item
@@ -115,5 +115,7 @@
 
     <item android:id="@+id/import_resource"
         android:title="@string/import_resource"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        android:onClick="importResource"
+        />
 </menu>

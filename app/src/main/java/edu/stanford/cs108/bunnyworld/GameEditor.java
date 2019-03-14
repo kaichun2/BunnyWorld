@@ -1,12 +1,20 @@
 package edu.stanford.cs108.bunnyworld;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -40,6 +49,12 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 public class GameEditor extends AppCompatActivity {
 
@@ -57,7 +73,7 @@ public class GameEditor extends AppCompatActivity {
     static int selectedShape;
     String gameName;
     private String triggers[] = {"on click", "on enter", "on drop", "property" };
-    private String scriptActions[] = {"goto", "play", "hide", "show"};
+    static public String scriptActions[] = {"goto", "play", "hide", "show"};
     private String[][] actions = { scriptActions, scriptActions, scriptActions, {"Set Property"} };
     String isError = "unchecked";
     static float MINIMUM_SIZE = 30;
@@ -65,9 +81,30 @@ public class GameEditor extends AppCompatActivity {
 
     static float RESOURCE_BOUNDARY = 0;
     static float RESOURCE_OFFSET = 30;
+    static int GALLERY_REQUEST = 1;
     static int actionBarHeight;
 
+
     boolean isCut;
+
+    // for undo support (when page is removed)
+    // we initialize it here since if we did it in constructor
+    // we would not be able to maintain multiple pages since onCreate
+    // would reset the stack
+    public static Stack<Page> deletedPages = new Stack<>();
+
+
+    // will be initialized in onCreate since the shape stack
+    // is a property of the current page, it should not carry
+    // over between pages
+    public static Stack<ShapeEvent> undoShapeStack;
+
+    // for undo support
+    public static final int ADD_SHAPE = 1;
+    public static final int DELETE_SHAPE = 2;
+    public static final int MISC_SHAPE_CONFIG = 3;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,8 +177,8 @@ public class GameEditor extends AppCompatActivity {
                 }
         );
 
-        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
-        drawResources(resources);
+
+        drawResources();
 
         selectedResource = -1;
 
@@ -167,6 +204,7 @@ public class GameEditor extends AppCompatActivity {
 
         RESOURCE_BOUNDARY = windowHeight * 3.0f / 4.0f - actionBarHeight - RESOURCE_OFFSET;
 
+        undoShapeStack = new Stack<>();
     }
 
     @Override
@@ -280,7 +318,10 @@ public class GameEditor extends AppCompatActivity {
         errorIconD.show();
     }
 
-    private void drawResources(Map<String, BitmapDrawable> resources) {
+    private void drawResources() {
+        Map<String, BitmapDrawable> resources = Shape.getDrawables(this);
+
+
         LinearLayout resourceView = findViewById(R.id.resource_scroll);
 
         for (Map.Entry<String, BitmapDrawable> resource : resources.entrySet()) {
@@ -369,7 +410,6 @@ public class GameEditor extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-
                         String shape = shapeSpinner.getSelectedItem().toString();
                         String other = otherSpinner.getSelectedItem().toString();
 
@@ -437,6 +477,10 @@ public class GameEditor extends AppCompatActivity {
                         finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
 
 
+                        // undo support
+                        ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                        undoShapeStack.push(event);
+
                         curr.setScript(finalScript.trim());
 
                         // since we updated a script, let user know that they should check for errors
@@ -474,7 +518,7 @@ public class GameEditor extends AppCompatActivity {
 
     }
 
-    private String[] getPageNames() {
+    static public String[] getPageNames() {
         ArrayList<Page> allPages = Page.getPages();
 
         String[] pageNames = new String[allPages.size()];
@@ -486,7 +530,7 @@ public class GameEditor extends AppCompatActivity {
         return pageNames;
     }
 
-    private String[] getShapeNames() {
+    static public String[] getShapeNames() {
         ArrayList<Shape> allShapes = Shape.getAllShapes();
 
         String[] shapeNames = new String[allShapes.size()];
@@ -544,6 +588,9 @@ public class GameEditor extends AppCompatActivity {
                             Switch isMovable = (Switch) ((AlertDialog) property).findViewById(R.id.is_movable);
                             Switch isHidden = (Switch) ((AlertDialog) property).findViewById(R.id.is_hidden);
 
+                            // undo support
+                            ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                            undoShapeStack.push(event);
                             //EditText color = (EditText) ((AlertDialog) property).findViewById(R.id.textColor);
                             CheckBox bold = (CheckBox) ((AlertDialog) property).findViewById(R.id.boldOption);
                             CheckBox italic = (CheckBox) ((AlertDialog) property).findViewById(R.id.italicOption);
@@ -715,6 +762,7 @@ public class GameEditor extends AppCompatActivity {
             triggerDialog.setNeutralButton("Play", null);
         }
 
+
         triggerDialog.setSingleChoiceItems( arrayNames, 0 , new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -820,7 +868,9 @@ public class GameEditor extends AppCompatActivity {
                         finalScript += !onClick.equals("on click ") ? " " + onClick.trim() + ";" : "";
                         finalScript += !onEnter.equals("on enter ") ? " " + onEnter.trim() + ";" : "";
 
-
+                        // undo support
+                        ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+                        undoShapeStack.push(event);
 
                         curr.setScript(finalScript.trim());
 
@@ -891,12 +941,18 @@ public class GameEditor extends AppCompatActivity {
         LinearLayout editableObjName = findViewById(R.id.editable_obj_name);
 
         editableObjName.setVisibility(view.VISIBLE);
+
+        final Shape curr = currPage.getShapes().get(selectedShape);
+        EditText changeObjName = editableObjName.findViewById(R.id.change_obj_name);
+
+        changeObjName.setText(curr.getName());
     }
 
     private boolean objExists(String obj) {
+        final Shape curr = currPage.getShapes().get(selectedShape);
         ArrayList<Shape> allShapes = currPage.getShapes();
         for (Shape s : allShapes) {
-            if (obj.equals(s.getName())) {
+            if (obj.equals(s.getName()) && !curr.equals(s)) {
                 return true;
             }
         }
@@ -911,6 +967,10 @@ public class GameEditor extends AppCompatActivity {
 
         if (!objExists(name) && !name.contains(" ") && !name.equals("")) {
             final Shape curr = currPage.getShapes().get(selectedShape);
+            // undo support
+            ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+            undoShapeStack.push(event);
+
             curr.setName(name);
 
             TextView objName = findViewById(R.id.obj_name);
@@ -941,7 +1001,6 @@ public class GameEditor extends AppCompatActivity {
             }
         }
 
-
     }
 
     public void deleteObject(View view) {
@@ -968,6 +1027,10 @@ public class GameEditor extends AppCompatActivity {
                         // make sure to remove from all shapes arraylist as well
                         Shape.getAllShapes().remove(curr);
                         selectedShape = -1;
+
+                        // undo support
+                        ShapeEvent event = new ShapeEvent(DELETE_SHAPE, (Shape) curr.clone());
+                        undoShapeStack.push(event);
 
                         // since we deleted a shape, let user know that they should check for errors
                         isError = "unchecked";
@@ -1033,6 +1096,14 @@ public class GameEditor extends AppCompatActivity {
 
                                 removedID++;
                             }
+
+                            // delete all the shapes on this page too
+                            for (Shape shape : currPage.getShapes()) {
+                                Shape.getAllShapes().remove(shape);
+                            }
+
+                            // for undo support
+                            deletedPages.push(currPage);
 
                             onBackPressed();
                             delete.dismiss();
@@ -1143,7 +1214,7 @@ public class GameEditor extends AppCompatActivity {
     private boolean pageExists(String page) {
         ArrayList<Page> allPages = Page.getPages();
         for (Page p : allPages) {
-            if (page.equals(p.getPageName())) {
+            if (page.equals(p.getPageName()) && !currPage.getPageName().equals(page)) {
                 return true;
             }
         }
@@ -1166,6 +1237,10 @@ public class GameEditor extends AppCompatActivity {
 
         resetToast.show();
 
+        // undo support
+        ShapeEvent event = new ShapeEvent(MISC_SHAPE_CONFIG, (Shape) curr.clone());
+        undoShapeStack.push(event);
+
         curr.setScript("");
     }
 
@@ -1179,6 +1254,7 @@ public class GameEditor extends AppCompatActivity {
      */
     public ArrayList<String> runErrorTest() {
         ArrayList<Page> allPages = Page.getPages();
+        ArrayList<Shape> allShapes = Shape.getAllShapes();
         Set<String> pageNames = new HashSet<>(Arrays.asList(getPageNames()));
         Set<String> shapeNames = new HashSet<>(Arrays.asList(getShapeNames()));
         Set<String> validActions = new HashSet<>(Arrays.asList(scriptActions));
@@ -1197,7 +1273,9 @@ public class GameEditor extends AppCompatActivity {
                         if (!shapeNames.contains(shapeName)) {
                             String invalidState = shape.getName() + " contains invalid script trigger <"
                                     + trigger + "> since shape " + shapeName + " does not exist.";
-                            invalidStates.add(invalidState);
+                            if (!invalidStates.contains(invalidState)) {
+                                invalidStates.add(invalidState);
+                            }
                         }
                     }
                 }
@@ -1221,13 +1299,17 @@ public class GameEditor extends AppCompatActivity {
                                 if (!pageNames.contains(portion)) {
                                     String invalidState = shape.getName() + " contains invalid script action "
                                             + "goto <" + portion + "> since page " + portion + " does not exist.";
-                                    invalidStates.add(invalidState);
+                                    if (!invalidStates.contains(invalidState)) {
+                                        invalidStates.add(invalidState);
+                                    }
                                 }
                             } else if (prevCommand.equals("hide")) { // currently a shape
                                 if (!shapeNames.contains(portion)) {
                                     String invalidState = shape.getName() + " contains invalid script action " +
                                             "hide <" + portion + "> since shape " + portion + " does not exist.";
-                                    invalidStates.add(invalidState);
+                                    if (!invalidStates.contains(invalidState)) {
+                                        invalidStates.add(invalidState);
+                                    }
                                 }
                             }
                             // Note: play corresponds to a sound, and those are guaranteed
@@ -1235,6 +1317,45 @@ public class GameEditor extends AppCompatActivity {
                         }
 
                     }
+                }
+            }
+        }
+
+        // validate that shapes have unique names
+        for (Shape currShape : allShapes) {
+            for (Shape otherShape : allShapes) {
+                if (!currShape.equals(otherShape) && currShape.getName().equals(otherShape.getName())) {
+                    String invalidState = "The following shape name is not unique: " + currShape.getName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // validate that pages have unique names
+        for (Page currPage : allPages) {
+            for (Page otherPage : allPages) {
+                if (!currPage.equals(otherPage) && currPage.getPageName().equals(otherPage.getPageName())) {
+                    String invalidState = "The following page name is not unique: " + currPage.getPageName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
+                }
+            }
+        }
+
+        // validate page and shape names are unique with respect to each other
+        for (Page currPage: allPages) {
+            for (Shape shape : allShapes) {
+                if (currPage.getPageName().equals(shape.getName())) {
+                    String invalidState = "The following page name is not unique (conflict with a shape): " + currPage.getPageName();
+                    if (!invalidStates.contains(invalidState)) {
+                        invalidStates.add(invalidState);
+                    }
+                    break; // if we found a duplicate, no reason to look for more
                 }
             }
         }
@@ -1280,6 +1401,7 @@ public class GameEditor extends AppCompatActivity {
 
         CanvasView canvasView = findViewById(R.id.canvas); // make it redraw after they set it
         canvasView.invalidate();
+
         Toast toast = Toast.makeText(getApplicationContext(), "The background has been set!", Toast.LENGTH_SHORT);
         toast.show();
     }
@@ -1318,7 +1440,206 @@ public class GameEditor extends AppCompatActivity {
         }
     }
 
-    public void undoShapeDelete(MenuItem item) {
+
+    // for undo shape changes support (or deletions)
+    public void undoShapeChanges(MenuItem menuItem) {
+        if (!undoShapeStack.isEmpty()) {
+            ShapeEvent lastEvent = undoShapeStack.pop();
+            Log.d("undoing...", lastEvent.toString());
+            lastEvent.undoEvent(findViewById(android.R.id.content));
+            CanvasView canvasView = findViewById(R.id.canvas);
+            canvasView.invalidate();
+        }
+    }
+
+
+    // static inner class for undoing shape events
+    // supports:
+    //  -undoing add shapes
+    //  -undoing delete shapes
+    //  -undoing any changes to shapes (includes drag/drop)
+    public static class ShapeEvent {
+        private int type;
+        private Shape affectedShape;
+
+        public ShapeEvent(int type, Shape affectedShape) {
+            this.type = type;
+            this.affectedShape = affectedShape;
+        }
+
+        public void undoEvent(View view) {
+            if (type == ADD_SHAPE) {
+                currPage.getShapes().remove(affectedShape);
+                Shape.getAllShapes().remove(affectedShape);
+
+                LinearLayout objProperties = view.findViewById(R.id.obj_properties);
+                objProperties.setVisibility(View.GONE);
+
+                TextView clickObj = view.findViewById(R.id.click_obj);
+                clickObj.setVisibility(View.VISIBLE);
+
+            } else if (type == DELETE_SHAPE) {
+                currPage.getShapes().add(affectedShape);
+                Shape.getAllShapes().add(affectedShape);
+
+                LinearLayout objProperties = view.findViewById(R.id.obj_properties);
+                objProperties.setVisibility(View.VISIBLE);
+
+                TextView clickObj = view.findViewById(R.id.click_obj);
+                clickObj.setVisibility(View.GONE);
+                selectedShape = currPage.getShapes().size() - 1;
+
+            } else if (type == MISC_SHAPE_CONFIG) {
+                // updating the shape itself so this carries over to the reference to
+                // shape in Shape.getAllShapes
+                boolean wasNameChange = false;
+                for (Shape shape : currPage.getShapes()) {
+                    // need to look at stored shape hash (clones have same hash ivar as
+                    // the obj they were cloned from) since it is the only consistent
+                    // property (names will change)
+                    if (affectedShape.getShapeHash() == shape.getShapeHash()) {
+                        if (!affectedShape.getName().equals(shape.getName())) wasNameChange = true;
+                        shape.consume(affectedShape);
+                        break;
+                    }
+                }
+
+                // if the name was changed, update the side panel to display change
+                if (wasNameChange) {
+                    final Shape curr = currPage.getShapes().get(selectedShape);
+                    TextView objName = view.findViewById(R.id.obj_name);
+                    objName.setText(curr.getName());
+                }
+            }
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public Shape getShape() {
+            return affectedShape;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder ret = new StringBuilder();
+            if (type == ADD_SHAPE) {
+                ret.append("ADD SHAPE EVENT: ");
+            } else if (type == DELETE_SHAPE) {
+                ret.append("DELETE SHAPE EVENT: ");
+            } else if (type == MISC_SHAPE_CONFIG) {
+                ret.append("MISC SHAPE CONFIG EVENT: ");
+            }
+            ret.append(affectedShape.toString());
+            return ret.toString();
+
+        }
+    } // end ShapeEvent
+
+    public void importResource(MenuItem item) {
+        Intent resourceIntent = new Intent(Intent.ACTION_PICK);
+        resourceIntent.setType("image/*");
+        startActivityForResult(resourceIntent, GALLERY_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        final Uri resourceUri = data.getData();
+        InputStream resourceStream = null;
+
+
+        if (resultCode == RESULT_OK) {
+            try {
+                resourceStream = getContentResolver().openInputStream(resourceUri);
+
+                final Bitmap selectedResource = BitmapFactory.decodeStream(resourceStream);
+                BitmapDrawable bitmap = new BitmapDrawable(getResources(), selectedResource);
+
+                String fileName = queryFileName(resourceUri);
+
+                saveToInternalStorage(selectedResource, fileName);
+
+                HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(this);
+                newResources.put(fileName, bitmap);
+                Shape.importedResources.add(fileName);
+
+                LinearLayout resourceView = findViewById(R.id.resource_scroll);
+                resourceView.removeAllViews();
+                drawResources();
+
+            } catch (FileNotFoundException e) {
+
+                e.printStackTrace();
+
+                Toast errorImport = Toast.makeText(getApplicationContext(), "Unable to import resource", Toast.LENGTH_SHORT);
+                errorImport.show();
+
+            } finally {
+                try {
+                    resourceStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else {
+            Toast emptyImport = Toast.makeText(getApplicationContext(), "No resource chosen", Toast.LENGTH_SHORT);
+            emptyImport.show();
+        }
+    }
+
+    private String queryFileName(Uri uri) {
+        Cursor returnCursor =
+                getContentResolver().query(uri, null, null, null, null);
+
+        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+
+        returnCursor.moveToFirst();
+        String fileName = returnCursor.getString(nameIndex);
+        returnCursor.close();
+        return fileName;
+    }
+
+    private String saveToInternalStorage(Bitmap bitmapImage, String fileName){
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+
+        File directory = cw.getDir("resourceDir", Context.MODE_PRIVATE);
+        File resourcePath = new File(directory, fileName);
+
+        FileOutputStream fileOS = null;
+
+        try {
+            fileOS = new FileOutputStream(resourcePath);
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fileOS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fileOS.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return directory.getAbsolutePath();
+    }
+
+    static public void loadResourceFromStorage(String path, String name, Context context) {
+
+        try {
+            File resourceFile = new File(path, name);
+
+            final Bitmap selectedImage = BitmapFactory.decodeStream(new FileInputStream(resourceFile));
+            BitmapDrawable bitmap = new BitmapDrawable(context.getResources(), selectedImage);
+
+            HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(context);
+            newResources.put(name, bitmap);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 }
