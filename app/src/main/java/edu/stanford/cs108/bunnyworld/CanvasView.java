@@ -24,6 +24,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class CanvasView extends View {
 

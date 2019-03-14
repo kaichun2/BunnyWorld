@@ -4,6 +4,7 @@ package edu.stanford.cs108.bunnyworld;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.*;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.*;
 import android.view.View;
 import android.text.style.*;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static android.content.DialogInterface.BUTTON_NEGATIVE;
 import static android.content.DialogInterface.BUTTON_POSITIVE;

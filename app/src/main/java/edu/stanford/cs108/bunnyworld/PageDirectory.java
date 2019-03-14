@@ -33,6 +33,7 @@ public class PageDirectory extends AppCompatActivity {
     ArrayList<Page> pages;
     public static final String PAGE_ID = "page";
     public static final String GAME = "game";
+    public static final String PATH = "/data/user/0/edu.stanford.cs108.bunnyworld/app_resourceDir";
     String gameName;
 
     @Override
@@ -51,6 +52,12 @@ public class PageDirectory extends AppCompatActivity {
         if (!isCreate) { // edit, load it
             Page.loadDatabase(this, gameName);
             drawPages();
+
+            System.out.println("loading resources");
+
+            for (int i = 0; i < Shape.importedResources.size(); i ++) {
+                GameEditor.loadResourceFromStorage(PATH, Shape.importedResources.get(i), this);
+            }
         } else {
             // reset data from any previous things we've done, create game should be fresh
             Page.getPages().clear();
