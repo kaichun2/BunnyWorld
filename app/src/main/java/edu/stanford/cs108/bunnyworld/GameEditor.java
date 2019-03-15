@@ -79,6 +79,12 @@ public class GameEditor extends AppCompatActivity {
     static float MINIMUM_SIZE = 30;
     int windowWidth, windowHeight;
 
+    private static final int SHOW_RIGHT = 0;
+    private static final int SHOW_LEFT = 1;
+    private static final int HIDE = 2;
+
+    private static int currMenuState = SHOW_RIGHT;
+
     static float RESOURCE_BOUNDARY = 0;
     static float RESOURCE_OFFSET = 30;
     static int GALLERY_REQUEST = 1;
@@ -229,7 +235,9 @@ public class GameEditor extends AppCompatActivity {
 
         propertiesSpinner.setAdapter(propertiesAdapter);
 
+        propertiesSpinner.setSelection(currMenuState);
         propertiesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
 
             @Override
 
@@ -242,13 +250,16 @@ public class GameEditor extends AppCompatActivity {
                     params.gravity = Gravity.LEFT;
                     propertiesView.setLayoutParams(params);
                     propertiesView.setVisibility(view.VISIBLE);
+                    currMenuState = SHOW_LEFT;
                 } else if (selected.equals("Show Right")) {
                     FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(225, FrameLayout.LayoutParams.MATCH_PARENT);
                     params.gravity = Gravity.RIGHT;
                     propertiesView.setLayoutParams(params);
                     propertiesView.setVisibility(view.VISIBLE);
+                    currMenuState = SHOW_RIGHT;
                 } else if (selected.equals("Hide")) {
                     propertiesView.setVisibility(view.GONE);
+                    currMenuState = HIDE;
                 }
             }
 
