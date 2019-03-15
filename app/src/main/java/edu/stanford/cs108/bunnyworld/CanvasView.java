@@ -61,7 +61,7 @@ public class CanvasView extends View {
 
     private void init() {
         blueOutlinePaint = new Paint();
-        blueOutlinePaint.setColor(Color.BLUE);
+        blueOutlinePaint.setColor(getResources().getColor(R.color.alternate_blue));
         blueOutlinePaint.setStyle(Paint.Style.STROKE);
         blueOutlinePaint.setStrokeWidth(5.0f);
 

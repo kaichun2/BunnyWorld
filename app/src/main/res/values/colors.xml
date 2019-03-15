@@ -5,4 +5,6 @@
     <color name="colorAccent">#D81B60</color>
     <color name="light_grey">#CCD1D1</color>
     <color name="dark_grey">#B2BABB</color>
+    <color name="alternate_blue">#00B2EE</color>
+    <color name="maroon">#800000</color>
 </resources>
