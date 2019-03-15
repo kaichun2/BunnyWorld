@@ -70,7 +70,7 @@ public class GameView extends View {
         greenOutlinePaint.setStrokeWidth(5.0f);
 
         redOutlinePaint = new Paint();
-        redOutlinePaint.setColor(Color.RED);
+        redOutlinePaint.setColor(getResources().getColor(R.color.maroon));
         redOutlinePaint.setStyle(Paint.Style.STROKE);
         redOutlinePaint.setStrokeWidth(5.0f);
     }
