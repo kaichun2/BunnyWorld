@@ -3,6 +3,8 @@ package edu.stanford.cs108.bunnyworld;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -27,9 +29,17 @@ public class GameActivity extends AppCompatActivity {
 
         pages = Page.getPages();
         possessions = Page.getPossessions();
+
+        GameView.updateActivity(this); // update current reference
     }
 
-    public void onRestartGameClick(View view) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.game_view_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public void onRestartGameClick(MenuItem menuItem) {
         // resets properties
         Page.loadDatabase(this, game);
         pages = Page.getPages();
@@ -38,6 +48,6 @@ public class GameActivity extends AppCompatActivity {
         GameView.reset = true;
         GameView gameview = findViewById(R.id.game_view);
         gameview.invalidate();
-    }
 
+    }
 }

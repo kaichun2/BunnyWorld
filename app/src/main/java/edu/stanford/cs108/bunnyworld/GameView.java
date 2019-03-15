@@ -1,15 +1,18 @@
 package edu.stanford.cs108.bunnyworld;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class GameView extends View {
@@ -33,6 +36,14 @@ public class GameView extends View {
     // since this signifies the user having clicked the
     // restart button in GameActivity
     public static boolean reset = false;
+
+    // getting instance of gameactivity class
+    // necessary if we want to update pagename in toolbar
+    // https://stackoverflow.com/questions/9723106/get-activity-instance
+    private static WeakReference<Activity> gameActivityInstance = null;
+    public static void updateActivity(Activity activity) {
+        gameActivityInstance = new WeakReference<>(activity);
+    }
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -94,6 +105,16 @@ public class GameView extends View {
         // handle logic for opening a new page (calling onEnter scripts)
         Page newPage = null;
         if (openNewPage) {
+            // update toolbar
+            if (gameActivityInstance != null) {
+                String currPageName = currPage.getPageName();
+                // Action Bar can't be used in static contexts. So we need to keep a weak reference
+                // to the game activity and update the action bar through the reference like so (sad)
+                android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) ((GameActivity)gameActivityInstance.get()).findViewById(R.id.game_activity_toolbar);
+                ((GameActivity) gameActivityInstance.get()).setSupportActionBar(toolbar);
+                ((GameActivity) gameActivityInstance.get()).getSupportActionBar().setTitle(currPageName);
+            }
+
             // call on Enter's for each shape
             for (Shape shape : currPage.getShapes()) {
                 Page tempPage = shape.onEnter(getContext());
