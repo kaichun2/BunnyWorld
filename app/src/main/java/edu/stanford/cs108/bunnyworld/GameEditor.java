@@ -1547,47 +1547,51 @@ public class GameEditor extends AppCompatActivity {
     protected void onActivityResult(int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
 
-        final Uri resourceUri = data.getData();
-        InputStream resourceStream = null;
+        if (data != null) {
+            final Uri resourceUri = data.getData();
+            InputStream resourceStream = null;
 
 
-        if (resultCode == RESULT_OK) {
-            try {
-                resourceStream = getContentResolver().openInputStream(resourceUri);
+            if (resourceUri != null) {
+                if (resultCode == RESULT_OK) {
+                    try {
+                        resourceStream = getContentResolver().openInputStream(resourceUri);
 
-                final Bitmap selectedResource = BitmapFactory.decodeStream(resourceStream);
-                BitmapDrawable bitmap = new BitmapDrawable(getResources(), selectedResource);
+                        final Bitmap selectedResource = BitmapFactory.decodeStream(resourceStream);
+                        BitmapDrawable bitmap = new BitmapDrawable(getResources(), selectedResource);
 
-                String fileName = queryFileName(resourceUri);
+                        String fileName = queryFileName(resourceUri);
 
-                saveToInternalStorage(selectedResource, fileName);
+                        saveToInternalStorage(selectedResource, fileName);
 
-                HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(this);
-                newResources.put(fileName, bitmap);
-                Shape.importedResources.add(fileName);
+                        HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(this);
+                        newResources.put(fileName, bitmap);
+                        Shape.importedResources.add(fileName);
 
-                LinearLayout resourceView = findViewById(R.id.resource_scroll);
-                resourceView.removeAllViews();
-                drawResources();
+                        LinearLayout resourceView = findViewById(R.id.resource_scroll);
+                        resourceView.removeAllViews();
+                        drawResources();
 
-            } catch (FileNotFoundException e) {
+                    } catch (FileNotFoundException e) {
 
-                e.printStackTrace();
+                        e.printStackTrace();
 
-                Toast errorImport = Toast.makeText(getApplicationContext(), "Unable to import resource", Toast.LENGTH_SHORT);
-                errorImport.show();
+                        Toast errorImport = Toast.makeText(getApplicationContext(), "Unable to import resource", Toast.LENGTH_SHORT);
+                        errorImport.show();
 
-            } finally {
-                try {
-                    resourceStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    } finally {
+                        try {
+                            resourceStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                } else {
+                    Toast emptyImport = Toast.makeText(getApplicationContext(), "No resource chosen", Toast.LENGTH_SHORT);
+                    emptyImport.show();
                 }
             }
-
-        } else {
-            Toast emptyImport = Toast.makeText(getApplicationContext(), "No resource chosen", Toast.LENGTH_SHORT);
-            emptyImport.show();
         }
     }
 
