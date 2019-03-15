@@ -56,14 +56,16 @@ public class MainActivity extends AppCompatActivity {
         games = gamesList.toArray(games);
     }
 
-    // you only have to run this once on your emulator
-    // feel free to comment it out after you've ran it once
-    // (this is necessary to get the two res/raw json files
-    // into internal storage, Patrick Young approved)
-    // only loading bunny world file
+    // if the sample files aren't loaded into internal android storage yet,
+    // do that now. for now, sample_data_file is legacy.
     private void putRawFilesIntoInternalAndroidStorage() {
-        Page.loadRawFileIntoInternalStorage(this, Page.SAMPLE_DATA_FILE);
-        Page.loadRawFileIntoInternalStorage(this, Page.BUNNY_WORLD_FILE);
+//        if (!Page.fileExists(this, Page.SAMPLE_DATA_FILE)) {
+//            Page.loadRawFileIntoInternalStorage(this, Page.SAMPLE_DATA_FILE);
+//        }
+
+        if (!Page.fileExists(this, Page.BUNNY_WORLD_FILE)) {
+            Page.loadRawFileIntoInternalStorage(this, Page.BUNNY_WORLD_FILE);
+        }
 
         // reset page, shape, and possessions arrays so it doesn't mess with anything
         Page.getPages().clear();

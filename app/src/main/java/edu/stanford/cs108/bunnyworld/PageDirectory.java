@@ -104,7 +104,8 @@ public class PageDirectory extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
+        isError = "unchecked";
+        invalidateOptionsMenu();
         drawPages();
     }
 
@@ -271,13 +272,19 @@ public class PageDirectory extends AppCompatActivity {
     }
 
     public void saveGame(MenuItem item) {
-        Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
+        if (isError.equals("no errors")) {
+            Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
+            saveToast.show();
+            Page.loadIntoDatabaseFile(this, gameName);
 
-        saveToast.show();
+        } else if (isError.equals("errors")) {
+            Toast errorToast = Toast.makeText(getApplicationContext(), "Unable to save due to errors", Toast.LENGTH_SHORT);
+            errorToast.show();
 
-        // TO DO: verify save
-        // loadIntoDatabaseFile
-        Page.loadIntoDatabaseFile(this, gameName);
+        } else if (isError.equals("unchecked")) {
+            Toast testToast = Toast.makeText(getApplicationContext(), "Please run the test before saving", Toast.LENGTH_SHORT);
+            testToast.show();
+        }
     }
 
     public void deleteGame(MenuItem item) {

@@ -1,356 +1,337 @@
 {
-  "game_name": "bunnyworld",
-  "imported_resources": [],
-  "num_pages": "5",
-  "pages" : [
-    {
-      "page_id" : "1",
-      "page_name" : "page1",
-      "backgroundImage" : "",
-      "num_shapes": "5",
-      "shapes" : [
-        {
-          "name" : "p1header",
-          "imgName" : "",
-          "pageID" : "1",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "450",
-          "y" : "100",
-          "width" : "0",
-          "height" : "0",
-          "textObj" :
-          {
-            "xLoc" : "450",
-            "yLoc" : "100",
-            "fontSize" : "50",
-            "text" : "Bunny World!",
-            "bold" : false,
-            "italic" : false,
-            "underline" : false,
-            "color" : -16777216
-          },
-          "script" : ""
-        },
-        {
-          "name" : "p1mainmessage",
-          "imgName" : "",
-          "pageID" : "1",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "175",
-          "y" : "150",
-          "width" : "0",
-          "height" : "0",
-          "textObj" :
-          {
-            "xLoc" : "200",
-            "yLoc" : "150",
-            "fontSize" : "40",
-            "text" : "You are in a maze of twisty little passages, all alike",
-            "bold" : false,
-            "italic" : false,
-            "underline" : false,
-            "color" : -16777216
-          },
-          "script" : ""
-        },
-        {
-          "name" : "p1door1",
-          "imgName" : "",
-          "pageID" : "1",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "250",
-          "y" : "400",
-          "width" : "50",
-          "height" : "50",
-          "textObj" : null,
-          "script" : "on click goto mysticbunnyroom;"
-        },
-        {
-          "name" : "p1door2",
-          "imgName" : "",
-          "pageID" : "1",
-          "isVisible" : false,
-          "isMovable" : false,
-          "x" : "625",
-          "y" : "400",
-          "width" : "50",
-          "height" : "50",
-          "textObj" : null,
-          "script" : "on click goto fireroom;"
-        },
-        {
-          "name" : "p1door3",
-          "imgName" : "",
-          "pageID" : "1",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "1000",
-          "y" : "400",
-          "width" : "50",
-          "height" : "50",
-          "textObj" : null,
-          "script" : "on click goto deathbunnyroom;"
-        }
-      ]
+  "game_name" : "bunnyworld",
+  "possessions" : [ ],
+  "pages" : [ {
+    "page_id" : "1",
+    "num_shapes" : "5",
+    "backgroundImage" : "",
+    "shapes" : [ {
+      "imgName" : "texticon",
+      "textObj" : {
+        "color" : "-16777216",
+        "underline" : false,
+        "fontSize" : "64",
+        "text" : "Bunnyworld!",
+        "bold" : false,
+        "italic" : false,
+        "xLoc" : "620.97656",
+        "yLoc" : "53.00879"
+      },
+      "name" : "p1header",
+      "x" : "508.98438",
+      "width" : "352.0",
+      "y" : "69.024414",
+      "isMovable" : false,
+      "isVisible" : true,
+      "script" : "",
+      "height" : "64.0"
     },
+      {
+        "imgName" : "texticon",
+        "textObj" : {
+          "color" : "-16777216",
+          "underline" : false,
+          "fontSize" : "36",
+          "text" : "You are in a maze of twisty little passages, all alike",
+          "bold" : false,
+          "italic" : false,
+          "xLoc" : "480.97656",
+          "yLoc" : "281.98828"
+        },
+        "name" : "p1mainmessage",
+        "x" : "273.98438",
+        "width" : "972.0",
+        "y" : "178.98535",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "",
+        "height" : "36.0"
+      },
+      {
+        "imgName" : "",
+        "textObj" : null,
+        "name" : "p1door1",
+        "x" : "356.95312",
+        "width" : "66.984375",
+        "y" : "321.98535",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on click goto mysticbunnyroom;",
+        "height" : "56.01758"
+      },
+      {
+        "imgName" : "",
+        "textObj" : null,
+        "name" : "p1door2",
+        "x" : "663.9844",
+        "width" : "64.99219",
+        "y" : "326.9414",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on click goto fireroom;",
+        "height" : "57.018555"
+      },
+      {
+        "imgName" : "",
+        "textObj" : null,
+        "name" : "p1door3",
+        "x" : "947.97656",
+        "width" : "60.96875",
+        "y" : "322.00977",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on click goto deathbunnyroom;",
+        "height" : "52.01367"
+      } ],
+    "page_name" : "page1"
+  },
     {
       "page_id" : "2",
-      "page_name" : "fireroom",
+      "num_shapes" : "4",
       "backgroundImage" : "",
-      "num_shapes": "4",
-      "shapes" : [
+      "shapes" : [ {
+        "imgName" : "fire",
+        "textObj" : null,
+        "name" : "p2fire",
+        "x" : "379.96094",
+        "width" : "520.96875",
+        "y" : "20.020508",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on enter play fire;",
+        "height" : "284.99707"
+      },
         {
-          "name" : "p2fire",
-          "imgName" : "fire",
-          "pageID" : "2",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "140",
-          "y" : "80",
-          "width" : "900",
-          "height" : "350",
-          "textObj" : null,
-          "script" : "on enter play fire;"
-        },
-        {
-          "name" : "p2text",
-          "imgName" : "",
-          "pageID" : "2",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "100",
-          "y" : "500",
-          "width" : "0",
-          "height" : "0",
-          "textObj" :
-          {
-            "xLoc" : "100",
-            "yLoc" : "500",
-            "fontSize" : "40",
-            "text" : "Eek! Fire-Room. Run away!",
+          "imgName" : "texticon",
+          "textObj" : {
+            "color" : "-16777216",
+            "underline" : false,
+            "fontSize" : "48",
+            "text" : "Eek! Fire-room. Run away!",
             "bold" : false,
             "italic" : false,
-            "underline" : false,
-            "color" : -16777216
+            "xLoc" : "435.9375",
+            "yLoc" : "332.0127"
           },
-          "script" : ""
-        },
-        {
-          "name" : "p2door1",
-          "imgName" : "",
-          "pageID" : "2",
-          "isVisible" : true,
+          "name" : "p2text",
+          "x" : "244.41406",
+          "width" : "600.0",
+          "y" : "348.0039",
           "isMovable" : false,
-          "x" : "700",
-          "y" : "465",
-          "width" : "50",
-          "height" : "50",
-          "textObj" : null,
-          "script" : "on click goto mysticbunnyroom;"
+          "isVisible" : true,
+          "script" : "",
+          "height" : "48.0"
         },
         {
-          "name" : "p2carrot",
-          "imgName" : "carrot",
-          "pageID" : "2",
-          "isVisible" : true,
-          "isMovable" : true,
-          "x" : "900",
-          "y" : "450",
-          "width" : "75",
-          "height" : "75",
+          "imgName" : "",
           "textObj" : null,
-          "script" : ""
-        }
-      ]
+          "name" : "p2door1",
+          "x" : "914.4341",
+          "width" : "89.99219",
+          "y" : "337.97656",
+          "isMovable" : false,
+          "isVisible" : true,
+          "script" : "on click goto mysticbunnyroom;",
+          "height" : "78.99121"
+        },
+        {
+          "imgName" : "carrot",
+          "textObj" : {
+            "color" : "-16777216",
+            "underline" : false,
+            "fontSize" : "36",
+            "text" : "",
+            "bold" : false,
+            "italic" : false,
+            "xLoc" : "953.9375",
+            "yLoc" : "149.01367"
+          },
+          "name" : "p2carrot",
+          "x" : "953.9375",
+          "width" : "94.0",
+          "y" : "149.01367",
+          "isMovable" : true,
+          "isVisible" : true,
+          "script" : "",
+          "height" : "110.0"
+        } ],
+      "page_name" : "fireroom"
     },
     {
       "page_id" : "3",
-      "page_name" : "mysticbunnyroom",
+      "num_shapes" : "3",
       "backgroundImage" : "",
-      "num_shapes": "3",
-      "shapes" : [
+      "shapes" : [ {
+        "imgName" : "mystic",
+        "textObj" : null,
+        "name" : "p3mysticbunny",
+        "x" : "465.47266",
+        "width" : "403.96094",
+        "y" : "52.00296",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on click hide p2carrot play munching; on enter show p1door2;",
+        "height" : "291.94202"
+      },
         {
-          "name" : "p3mysticbunny",
-          "imgName" : "mystic",
-          "pageID" : "3",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "450",
-          "y" : "50",
-          "width" : "350",
-          "height" : "250",
-          "textObj" : null,
-          "script" : "on click hide p2carrot play munching; on enter show p1door2;"
-        },
-        {
-          "name" : "p3text",
-          "imgName" : "",
-          "pageID" : "3",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "120",
-          "y" : "400",
-          "width" : "0",
-          "height" : "0",
-          "textObj" :
-          {
-            "xLoc" : "120",
-            "yLoc" : "400",
-            "fontSize" : "50",
+          "imgName" : "texticon",
+          "textObj" : {
+            "color" : "-16777216",
+            "underline" : false,
+            "fontSize" : "36",
             "text" : "Mystic Bunny- Rub my tummy for a big surprise!",
             "bold" : false,
             "italic" : false,
-            "underline" : false,
-            "color" : -16777216
+            "xLoc" : "162.03125",
+            "yLoc" : "377.03223"
           },
-          "script" : ""
+          "name" : "p3text",
+          "x" : "281.9922",
+          "width" : "828.0",
+          "y" : "395.0254",
+          "isMovable" : false,
+          "isVisible" : true,
+          "script" : "",
+          "height" : "36.0"
         },
         {
-          "name" : "p3door1",
           "imgName" : "",
-          "pageID" : "3",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "600",
-          "y" : "450",
-          "width" : "50",
-          "height" : "50",
           "textObj" : null,
-          "script" : "on click goto page1;"
-        }
-      ]
+          "name" : "p3door1",
+          "x" : "1010.9375",
+          "width" : "84.015625",
+          "y" : "173.01074",
+          "isMovable" : false,
+          "isVisible" : true,
+          "script" : "on click goto page1;",
+          "height" : "76.98926"
+        } ],
+      "page_name" : "mysticbunnyroom"
     },
     {
       "page_id" : "4",
-      "page_name" : "deathbunnyroom",
+      "num_shapes" : "3",
       "backgroundImage" : "",
-      "num_shapes": "3",
-      "shapes" : [
+      "shapes" : [ {
+        "imgName" : "death",
+        "textObj" : null,
+        "name" : "p4deathbunny",
+        "x" : "64.86047",
+        "width" : "448.10828",
+        "y" : "48.45215",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on drop p2carrot hide p2carrot play munching hide p4deathbunny show p4hiddenexit; on click play evillaugh; on enter play evillaugh;",
+        "height" : "377.58594"
+      },
         {
-          "name" : "p4deathbunny",
-          "imgName" : "death",
-          "pageID" : "4",
-          "isVisible" : true,
+          "imgName" : "",
+          "textObj" : {
+            "color" : "-16777216",
+            "underline" : false,
+            "fontSize" : "36",
+            "text" : "",
+            "bold" : false,
+            "italic" : false,
+            "xLoc" : "892.96875",
+            "yLoc" : "333.99707"
+          },
+          "name" : "p4hiddenexit",
+          "x" : "849.96094",
+          "width" : "84.99219",
+          "y" : "325.98926",
           "isMovable" : false,
-          "x" : "450",
-          "y" : "75",
-          "width" : "350",
-          "height" : "350",
-          "textObj" : null,
-          "script" : "on enter play evillaugh; on drop p2carrot hide p2carrot play munching hide p4deathbunny show p4hiddenexit; on click play evillaugh;"
+          "isVisible" : false,
+          "script" : "on click goto winroom;",
+          "height" : "72.00879"
         },
         {
-          "name" : "p4text",
-          "imgName" : "",
-          "pageID" : "4",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "225",
-          "y" : "500",
-          "width" : "0",
-          "height" : "0",
-          "textObj" :
-          {
-            "xLoc" : "250",
-            "yLoc" : "500",
-            "fontSize" : "50",
+          "imgName" : "texticon",
+          "textObj" : {
+            "color" : "-16777216",
+            "underline" : false,
+            "fontSize" : "36",
             "text" : "You must appease the Bunny of Death!",
             "bold" : false,
             "italic" : false,
-            "underline" : false,
-            "color" : -16777216
+            "xLoc" : "639.96094",
+            "yLoc" : "99.00488"
           },
-          "script" : ""
-        },
-        {
-          "name" : "p4hiddenexit",
-          "imgName" : "",
-          "pageID" : "4",
-          "isVisible" : false,
+          "name" : "p4text",
+          "x" : "577.9297",
+          "width" : "648.0",
+          "y" : "226.50732",
           "isMovable" : false,
-          "x" : "850",
-          "y" : "200",
-          "width" : "50",
-          "height" : "50",
-          "textObj" : null,
-          "script" : "on click goto winroom;"
-        }
-      ]
+          "isVisible" : true,
+          "script" : "",
+          "height" : "36.0"
+        } ],
+      "page_name" : "deathbunnyroom"
     },
     {
       "page_id" : "5",
-      "page_name" : "winroom",
+      "num_shapes" : "4",
       "backgroundImage" : "",
-      "num_shapes": "4",
-      "shapes" : [
-        {
-          "name" : "p5text",
-          "imgName" : "",
-          "pageID" : "5",
-          "isVisible" : true,
-          "isMovable" : false,
-          "x" : "450",
-          "y" : "500",
-          "width" : "400",
-          "height" : "150",
-          "textObj" :
-          {
-            "xLoc" : "450",
-            "yLoc" : "500",
-            "fontSize" : "50",
-            "text" : "You Win! Yay!",
-            "bold" : false,
-            "italic" : false,
-            "underline" : false,
-            "color" : -16777216
-          },
-          "script" : "on enter play hooray;"
+      "shapes" : [ {
+        "imgName" : "texticon",
+        "textObj" : {
+          "color" : "-16777216",
+          "underline" : false,
+          "fontSize" : "78",
+          "text" : "You win! Yay!",
+          "bold" : false,
+          "italic" : false,
+          "xLoc" : "530.97656",
+          "yLoc" : "82.012695"
         },
+        "name" : "p5text",
+        "x" : "405.0",
+        "width" : "507.0",
+        "y" : "60.04004",
+        "isMovable" : false,
+        "isVisible" : true,
+        "script" : "on enter play hooray;",
+        "height" : "78.0"
+      },
         {
+          "imgName" : "carrot2",
+          "textObj" : null,
           "name" : "p5carrot1",
-          "imgName" : "carrot",
-          "pageID" : "5",
-          "isVisible" : true,
+          "x" : "214.9375",
+          "width" : "163.0",
+          "y" : "269.01758",
           "isMovable" : false,
-          "x" : "150",
-          "y" : "150",
-          "width" : "225",
-          "height" : "225",
-          "textObj" : null,
-          "script" : ""
+          "isVisible" : true,
+          "script" : "",
+          "height" : "172.0"
         },
         {
+          "imgName" : "carrot2",
+          "textObj" : null,
           "name" : "p5carrot2",
-          "imgName" : "carrot",
-          "pageID" : "5",
+          "x" : "568.96094",
+          "width" : "163.0",
+          "y" : "199.99902",
+          "isMovable" : false,
           "isVisible" : true,
-          "isMovable" : true,
-          "x" : "550",
-          "y" : "200",
-          "width" : "225",
-          "height" : "225",
-          "textObj" : null,
-          "script" : ""
+          "script" : "",
+          "height" : "172.0"
         },
         {
-          "name" : "p5carrot3",
-          "imgName" : "carrot",
-          "pageID" : "5",
-          "isVisible" : true,
-          "isMovable" : true,
-          "x" : "950",
-          "y" : "150",
-          "width" : "225",
-          "height" : "225",
+          "imgName" : "carrot2",
           "textObj" : null,
-          "script" : ""
-        }
-      ]
-    }
-  ],
+          "name" : "p5carrot3",
+          "x" : "920.3867",
+          "width" : "163.0",
+          "y" : "267.01562",
+          "isMovable" : false,
+          "isVisible" : true,
+          "script" : "",
+          "height" : "172.0"
+        } ],
+      "page_name" : "winroom"
+    } ],
+  "imported_resources" : [ ],
   "num_possessions" : "0",
-  "possessions" : []
+  "num_pages" : "5"
 }

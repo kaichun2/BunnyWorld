@@ -318,7 +318,7 @@ public class Page {
         return ret.toString();
     }
 
-    private static boolean fileExists(Context context, String filename) {
+    public static boolean fileExists(Context context, String filename) {
         String path = context.getFilesDir().getAbsolutePath() + "/" + filename;
         File test = new File(path);
         return test.exists();
@@ -630,9 +630,22 @@ public class Page {
         json = json.replace("\"true\"", "true").replace("\"false\"", "false");
         json = json.replace(", {", ", \n{");
 
-        Log.d("cattty", json);
+        largeLog("cattty", json);
 
         return json;
+    }
+
+
+    // database json strings can be long, have to recursively
+    // print it in chunks since log.d() sets a limit on size.
+    // https://stackoverflow.com/questions/8888654/android-set-max-length-of-logcat-messages
+    public static void largeLog(String tag, String content) {
+        if (content.length() > 4000) {
+            Log.d(tag, content.substring(0, 4000));
+            largeLog(tag, content.substring(4000));
+        } else {
+            Log.d(tag, content);
+        }
     }
 
 
