@@ -1136,25 +1136,20 @@ public class GameEditor extends AppCompatActivity {
     }
 
     public void savePage(MenuItem item) {
-
         if (isError.equals("no errors")) {
             Toast saveToast = Toast.makeText(getApplicationContext(), "Saved " + gameName, Toast.LENGTH_SHORT);
-
             saveToast.show();
-
             Page.loadIntoDatabaseFile(this, gameName);
+
         } else if (isError.equals("errors")) {
             Toast errorToast = Toast.makeText(getApplicationContext(), "Unable to save due to errors", Toast.LENGTH_SHORT);
-
             errorToast.show();
+
         } else if (isError.equals("unchecked")) {
             Toast testToast = Toast.makeText(getApplicationContext(), "Please run the test before saving", Toast.LENGTH_SHORT);
-
             testToast.show();
+
         }
-
-
-
     }
 
     public void editPageName(MenuItem item) {
@@ -1406,9 +1401,6 @@ public class GameEditor extends AppCompatActivity {
         toast.show();
     }
 
-    // TODO rena (note that you need the menuItem argument for
-    // this to be registered as an onClick but you don't actually
-    // have to do anything with it!)
     public void copyShape(MenuItem menuItem) {
         for (Page p : Page.getPages()) {
             p.setClipboardPage(getCurrPage().getPageID());
