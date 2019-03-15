@@ -1,5 +1,8 @@
 package edu.stanford.cs108.bunnyworld;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,6 +11,7 @@ import java.util.Set;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -124,11 +128,30 @@ public class Shape implements Cloneable {
         drawables.put("mystic", mysticDrawable);
         drawables.put("texticon", texticonDrawable);
         drawables.put("greybox", greyboxDrawable);
+
+        Log.d("cat1", "size of ir: " + Shape.importedResources.size());
+        for (int i = 0; i < Shape.importedResources.size(); i ++) {
+            loadResourceFromStorage(PageDirectory.PATH, Shape.importedResources.get(i), context);
+        }
     }
 
     public static HashMap<String, BitmapDrawable> getDrawables(Context context) {
         initDrawables(context);
         return drawables;
+    }
+
+    public static void loadResourceFromStorage(String path, String name, Context context) {
+        try {
+            File resourceFile = new File(path, name);
+            final Bitmap selectedImage = BitmapFactory.decodeStream(new FileInputStream(resourceFile));
+            BitmapDrawable bitmap = new BitmapDrawable(context.getResources(), selectedImage);
+
+            drawables.put(name, bitmap);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /*

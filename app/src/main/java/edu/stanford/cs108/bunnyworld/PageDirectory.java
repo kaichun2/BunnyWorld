@@ -62,7 +62,7 @@ public class PageDirectory extends AppCompatActivity {
             System.out.println("loading resources");
 
             for (int i = 0; i < Shape.importedResources.size(); i ++) {
-                GameEditor.loadResourceFromStorage(PATH, Shape.importedResources.get(i), this);
+                Shape.loadResourceFromStorage(PATH, Shape.importedResources.get(i), this);
             }
         } else {
             // reset data from any previous things we've done, create game should be fresh

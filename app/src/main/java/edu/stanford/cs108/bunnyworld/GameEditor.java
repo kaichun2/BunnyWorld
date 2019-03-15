@@ -84,7 +84,6 @@ public class GameEditor extends AppCompatActivity {
     static int GALLERY_REQUEST = 1;
     static int actionBarHeight;
 
-
     boolean isCut;
 
     // for undo support (when page is removed)
@@ -99,7 +98,7 @@ public class GameEditor extends AppCompatActivity {
     // over between pages
     public static Stack<ShapeEvent> undoShapeStack;
 
-    // for undo support
+    // for undo support, the different types of ShapeEvents
     public static final int ADD_SHAPE = 1;
     public static final int DELETE_SHAPE = 2;
     public static final int MISC_SHAPE_CONFIG = 3;
@@ -1620,22 +1619,5 @@ public class GameEditor extends AppCompatActivity {
             }
         }
         return directory.getAbsolutePath();
-    }
-
-    static public void loadResourceFromStorage(String path, String name, Context context) {
-
-        try {
-            File resourceFile = new File(path, name);
-
-            final Bitmap selectedImage = BitmapFactory.decodeStream(new FileInputStream(resourceFile));
-            BitmapDrawable bitmap = new BitmapDrawable(context.getResources(), selectedImage);
-
-            HashMap<String, BitmapDrawable> newResources = Shape.getDrawables(context);
-            newResources.put(name, bitmap);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
     }
 }
