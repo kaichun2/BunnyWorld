@@ -84,7 +84,6 @@ public class GameEditor extends AppCompatActivity {
     static int GALLERY_REQUEST = 1;
     static int actionBarHeight;
 
-    boolean isCut;
 
     // for undo support (when page is removed)
     // we initialize it here since if we did it in constructor
@@ -1028,7 +1027,7 @@ public class GameEditor extends AppCompatActivity {
                         selectedShape = -1;
 
                         // undo support
-                        ShapeEvent event = new ShapeEvent(DELETE_SHAPE, (Shape) curr.clone());
+                        ShapeEvent event = new ShapeEvent(DELETE_SHAPE, curr);
                         undoShapeStack.push(event);
 
                         // since we deleted a shape, let user know that they should check for errors
@@ -1401,33 +1400,73 @@ public class GameEditor extends AppCompatActivity {
     }
 
     public void copyShape(MenuItem menuItem) {
-        for (Page p : Page.getPages()) {
-            p.setClipboardPage(getCurrPage().getPageID());
-        }
-        currPage.setClipboardShape(selectedShape);
+        final Shape curr = currPage.getShapes().get(selectedShape);
 
-        isCut = false;
+        // make a clone since we don't need the reference to
+        // original shape
+        Page.clipboardShape = (Shape) curr.clone();
+
+        // no undo support for copies
     }
 
     public void cutShape(MenuItem menuItem) {
-        for (Page p : Page.getPages()) {
-            p.setClipboardPage(getCurrPage().getPageID());
-        }
-        currPage.setClipboardShape(selectedShape);
-        isCut = true;
+        final Shape curr = currPage.getShapes().get(selectedShape);
+
+        // we are taking the current shape, including its reference,
+        // and placing it somewhere else.
+        Page.clipboardShape = curr;
+
+        // remove shape from storage, technically no longer existing
+        // though the script references will stay, user's responsibility
+        currPage.getShapes().remove(curr);
+        Shape.getAllShapes().remove(curr);
+        selectedShape = -1;
+
+        // undo support
+        ShapeEvent event = new ShapeEvent(DELETE_SHAPE, curr);
+        undoShapeStack.push(event);
+
+        // since we deleted a shape, let user know that they should check for errors
+        isError = "unchecked";
+        invalidateOptionsMenu();
+
+        CanvasView.setSelectedShape(selectedShape);
+
+        // show updated canvas with missing shape
+        CanvasView canvasView = findViewById(R.id.canvas);
+        canvasView.invalidate();
+
+        // stop showing the object properties toolbar
+        LinearLayout objProperties = this.findViewById(R.id.obj_properties);
+        objProperties.setVisibility(View.GONE);
+        TextView clickObj = this.findViewById(R.id.click_obj);
+        clickObj.setVisibility(View.VISIBLE);
     }
 
     public void pasteShape(MenuItem menuItem) {
-
-        int cbPageID = currPage.getClipboardPage();
-        Page from = Page.getPages().get(cbPageID - 1);
-        Page to = currPage;
-        for(Page p : Page.getPages()) {
-            if (p.getClipboardShape() != -1) {
-                to.getShapes().add(from.getShapes().get(from.getClipboardShape()));
-                from.getShapes().remove(from.getClipboardShape());
+        if (Page.clipboardShape != null) {
+            // edit name if copy
+            for (Shape shape : Shape.getAllShapes()) {
+                if (shape.getName().equals(Page.clipboardShape.getName())) {
+                    Page.clipboardShape.setName(Page.clipboardShape.getName() + " copy");
+                }
             }
-            p.setClipboardShape(-1);
+
+            // will paste shapes in the middle of the screen
+            CanvasView cv = (CanvasView) findViewById(R.id.canvas);
+            Page.clipboardShape.setX(cv.getWidth()/2 - Page.clipboardShape.getWidth()/2);
+            Page.clipboardShape.setY(cv.getHeight()/2 - Page.clipboardShape.getHeight()/2);
+            Page.clipboardShape.setPageID(currPage.getPageID());
+            currPage.getShapes().add(Page.clipboardShape);
+            Shape.getAllShapes().add(Page.clipboardShape);
+
+            // undo support
+            ShapeEvent event = new ShapeEvent(ADD_SHAPE, Page.clipboardShape);
+            undoShapeStack.push(event);
+
+            // show updated canvas with pasted shape
+            CanvasView canvasView = findViewById(R.id.canvas);
+            canvasView.invalidate();
         }
     }
 
@@ -1496,7 +1535,7 @@ public class GameEditor extends AppCompatActivity {
                 }
 
                 // if the name was changed, update the side panel to display change
-                if (wasNameChange) {
+                if (wasNameChange && selectedShape != -1) {
                     final Shape curr = currPage.getShapes().get(selectedShape);
                     TextView objName = view.findViewById(R.id.obj_name);
                     objName.setText(curr.getName());

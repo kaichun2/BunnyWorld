@@ -46,8 +46,7 @@ public class Page {
     private String backgroundImage;   /* Background image for current page. */
     private HashMap<String, Integer> backgroundMap; /* Maps background images to their drawables. */
 
-    private int clipboardPage;
-    private int clipboardShape;
+    public static Shape clipboardShape = null;
 
     /* User can access all the pages across all the pages using Page.getAllPages(). */
     /* Only accessible after the user loads the database with Page.loadDatabase(this, "gamename").*/
@@ -75,9 +74,6 @@ public class Page {
         allPages.add(this);
 
         loadBackgroundImages();
-        clipboardShape = -1;
-        clipboardPage = -1;
-
     }
 
     // a default constructor -> don't add to allPages
@@ -87,9 +83,6 @@ public class Page {
         this.pageID = -1;
         pageName = "";
         shapes = null;
-
-        clipboardShape = -1;
-        clipboardPage = -1;
     }
 
     @Override
@@ -116,14 +109,6 @@ public class Page {
     }
 
     public String getBackgroundImage() { return backgroundImage; }
-
-    public int getClipboardShape() { return clipboardShape; }
-
-    public void setClipboardShape(int i) {clipboardShape = i; }
-
-    public int getClipboardPage() { return clipboardPage; }
-
-    public void setClipboardPage(int i) {clipboardPage = i; }
 
     public Integer getImage(String image) {
         if (backgroundMap.containsKey(image)) {
@@ -162,7 +147,6 @@ public class Page {
     }
 
     /*
-    TODO: what happens when user clicks on canvas (which represents page) during game?
     1) we pass the x and y coordinates + event to following function
     2) we see if a shape is at that location (do nothing if not),
         if there's a shape:
