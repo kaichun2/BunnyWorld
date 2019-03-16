@@ -1,15 +1,12 @@
 package edu.stanford.cs108.bunnyworld;
 
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.*;
-import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.graphics.Color;
-
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -18,12 +15,24 @@ import android.widget.*;
 import android.view.View;
 import android.text.style.*;
 import java.util.ArrayList;
-import java.util.Map;
 
 import static android.content.DialogInterface.BUTTON_NEGATIVE;
 import static android.content.DialogInterface.BUTTON_POSITIVE;
 
 
+/**
+ * Main Activity is the initial loading screen for BunnyWorld. From
+ * this screen, the user can decide to either play a game in the database,
+ * create a new game, or edit an existing game. They can also choose to
+ * delete all the games in the database. Note that the canonical bunny world
+ * example will always load itself from a res/raw file into internal android
+ * storage when restarting the emulator (if it doesn't already exist in storage).
+ * All the proper error handling is in place for when the user deletes all the
+ * games in the database (prompting user to create a new game).
+ *
+ * More: Colorful bunnyworld text. Clicking on buttons has realistic animations.
+ *       Clicking on background shows new photo.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private String[] games; // all the games

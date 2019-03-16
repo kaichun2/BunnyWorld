@@ -6,15 +6,33 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+
+/**
+ * GameView supports running a game loaded from the database.
+ * It is contained within GameActivity. Can restart the game
+ * by clicking the restart icon in the toolbar. Name of current
+ * page is displayed on the toolbar.
+ *
+ * Hovering a shape over another shape displays a red/maroon square
+ * or green square depending on whether an onDrop exists between the
+ * two shapes (in the correct order).
+ *
+ * Dropping a shape over a shape that is highlighted red will cause it
+ * to snap back to the place the shape was previously at. Works
+ * regardless of whether the shape being moved begins in possessions or
+ * page.
+ *
+ * Placing a shape on the boundary line will reposition the shape to
+ * Page/possessions depending on which side it leans toward the most
+ * (within 1 pixel accuracy).
+ */
 public class GameView extends View {
 
     private int currentPageIndex;
@@ -41,7 +59,7 @@ public class GameView extends View {
     // necessary if we want to update pagename in toolbar
     // https://stackoverflow.com/questions/9723106/get-activity-instance
     private static WeakReference<Activity> gameActivityInstance = null;
-    public static void updateActivity(Activity activity) {
+    public static void updateActivity(Activity activity) { // for updating reference
         gameActivityInstance = new WeakReference<>(activity);
     }
 
@@ -58,6 +76,7 @@ public class GameView extends View {
         selectedShape = null;
     }
 
+    // init paints once, avoiding memory leak
     private void init() {
         blackPaint = new Paint();
         blackPaint.setColor(Color.BLACK);
@@ -75,6 +94,7 @@ public class GameView extends View {
         redOutlinePaint.setStrokeWidth(5.0f);
     }
 
+    // boundary line between possessions and page
     private void drawBoundaryLine(Canvas canvas) {
         yBoundary = (0.75f)*getHeight();
         canvas.drawLine(0, yBoundary, getWidth(), yBoundary, blackPaint);
@@ -308,7 +328,6 @@ public class GameView extends View {
         currPage.getShapes().remove(selectedShape);
     }
 
-
     private void handleHovering(Page currPage, float x, float y) {
         // slightly different depending on whether the selected shape
         // is in the page's shapes or is a possession
@@ -372,5 +391,4 @@ public class GameView extends View {
         newPage = secondTopShape.onDrop(getContext(), topShape); // execute "on drop topShape" script for secondTopShape
         return newPage;
     }
-
 }

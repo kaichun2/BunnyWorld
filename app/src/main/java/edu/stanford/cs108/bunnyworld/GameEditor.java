@@ -1,7 +1,5 @@
 package edu.stanford.cs108.bunnyworld;
 
-import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
@@ -9,10 +7,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.support.v7.app.AlertDialog;
@@ -24,9 +20,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,7 +28,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
-import android.widget.GridView;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -47,10 +40,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -64,6 +54,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+
+/**
+ * The Game Editor itself allows a user to edit a page and all of the shapes
+ * contained on that page. Works closely with CanvasView, which contains all
+ * of the shapes currently on the page. Contains a resource panel that the user
+ * can use to create shapes. Also contains a side panel that can be easily moved
+ * to allow for use of a bigger screen. The side panel is the properties panel,
+ * which allows the user to edit specific details about a Shape. Across the top,
+ * the toolbar contains various functionalities for interacting with the Page.
+ * In particular, the user can change the page name, can undo ANY shape changes
+ * made in that editing session (starting from the moment they opened that page
+ * in editor, so they can undo everything up to that point). They can also delete
+ * the current page (which can be undone in Page Directory). They can also save
+ * any changes they've made to the database in addition to validating the program
+ * for any errors (required in order to save the game to database). They can press
+ * the three vertical dots in the toolbar to copy/cut the selected shape and also
+ * paste the clipboard shape to the center of the screen. Furthermore, they can
+ * change the background of the page to be a certain color (which won't conflict
+ * with any highlighting done by on drop scripts in Game View or selections of any
+ * kind), and they can import images that are persistent so long s they remain on
+ * the user's Android (emulator). The toolbar is also where they can move the side
+ * panel.
+ */
 public class GameEditor extends AppCompatActivity {
 
     ExpandableListView expScriptTriggers;
@@ -107,7 +120,6 @@ public class GameEditor extends AppCompatActivity {
     public static final int ADD_SHAPE = 1;
     public static final int DELETE_SHAPE = 2;
     public static final int MISC_SHAPE_CONFIG = 3;
-
 
 
     @Override

@@ -61,13 +61,22 @@
       },
       {
         "imgName" : "",
-        "textObj" : null,
+        "textObj" : {
+          "color" : "-16777216",
+          "underline" : false,
+          "fontSize" : "36",
+          "text" : "",
+          "bold" : false,
+          "italic" : false,
+          "xLoc" : "663.9844",
+          "yLoc" : "326.9414"
+        },
         "name" : "p1door2",
         "x" : "663.9844",
         "width" : "64.99219",
         "y" : "326.9414",
         "isMovable" : false,
-        "isVisible" : true,
+        "isVisible" : false,
         "script" : "on click goto fireroom;",
         "height" : "57.018555"
       },
