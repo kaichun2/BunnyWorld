@@ -32,7 +32,6 @@ public class CanvasView extends View {
 
     ArrayList<Shape> pageShapes;
     static int selectedResource;
-    static int selectedShape;
     Paint blueOutlinePaint;
     static private float xDown, yDown, offsetX = 0, offsetY = 0, initialHeight = 0, initialWidth = 0;
     static String corner = "";
@@ -50,7 +49,7 @@ public class CanvasView extends View {
         super(context, attrs);
 
         pageShapes = null;
-        selectedShape = -1;
+        GameEditor.selectedShape = -1;
 
         TypedValue tv = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true);
@@ -86,7 +85,7 @@ public class CanvasView extends View {
 
         for (int i = 0; i < pageShapes.size(); i++) {
             Shape curr = pageShapes.get(i);
-            if (i == selectedShape) {
+            if (i == GameEditor.selectedShape) {
 
                 canvas.drawRect(curr.getX(), curr.getY(), curr.getX() + curr.getWidth(),
                         curr.getY() + curr.getHeight(), blueOutlinePaint);
@@ -135,9 +134,9 @@ public class CanvasView extends View {
                     selectShape(xDown, yDown);
                 }
 
-                if (selectedShape != -1) {
+                if (GameEditor.selectedShape != -1) {
 
-                    Shape curr = pageShapes.get(selectedShape);
+                    Shape curr = pageShapes.get(GameEditor.selectedShape);
 
                     // undo support
                     GameEditor.ShapeEvent shapeEvent = new GameEditor.ShapeEvent(GameEditor.MISC_SHAPE_CONFIG, (Shape) curr.clone());
@@ -158,8 +157,8 @@ public class CanvasView extends View {
 
             case MotionEvent.ACTION_MOVE:
 
-                if (selectedShape != -1) {
-                    Shape curr = pageShapes.get(selectedShape);
+                if (GameEditor.selectedShape != -1) {
+                    Shape curr = pageShapes.get(GameEditor.selectedShape);
 
                     float mouseX = event.getX();
                     float mouseY = event.getY();
@@ -272,8 +271,8 @@ public class CanvasView extends View {
                 // if the action we added didn't change any properties of the shape
                 // we can remove it from undo stack
                 // in all the cases where this matters, the shape we are looking at is selected
-                if (selectedShape != -1) {
-                    Shape curr = pageShapes.get(selectedShape);
+                if (GameEditor.selectedShape != -1) {
+                    Shape curr = pageShapes.get(GameEditor.selectedShape);
                     if (!undoShapeStack.isEmpty()) {
                         GameEditor.ShapeEvent lastEvent = undoShapeStack.peek();
                         Shape affectedShape = lastEvent.getShape();
@@ -333,7 +332,7 @@ public class CanvasView extends View {
     }
 
     static public void setSelectedShape(int shapeId) {
-        selectedShape = shapeId;
+        GameEditor.selectedShape = shapeId;
     }
 
     static public void setWindowHeight(int height) {
@@ -432,12 +431,12 @@ public class CanvasView extends View {
 
         pageShapes.add(newShape);
 
-        selectedShape = pageShapes.size() - 1;
+        GameEditor.selectedShape = pageShapes.size() - 1;
 
-        GameEditor.setSelectedShaped(selectedShape);
+        GameEditor.setSelectedShaped(GameEditor.selectedShape);
 
         TextView objName = ((GameEditor)getContext()).findViewById(R.id.obj_name);
-        objName.setText(pageShapes.get(selectedShape).getName());
+        objName.setText(pageShapes.get(GameEditor.selectedShape).getName());
 
         LinearLayout objProperties = ((GameEditor)getContext()).findViewById(R.id.obj_properties);
         objProperties.setVisibility(this.VISIBLE);
@@ -450,6 +449,7 @@ public class CanvasView extends View {
     }
 
     public void selectShape(float xDown, float yDown) {
+        GameEditor.selectedShape = -1;
 
         for (int i = pageShapes.size() - 1; i >= 0 ; i--) {
             Shape curr = pageShapes.get(i);
@@ -461,7 +461,7 @@ public class CanvasView extends View {
 
 
             if (xDown >= left - CORNER_SIZE && xDown <= right + CORNER_SIZE && yDown >= top - CORNER_SIZE && yDown <= bottom + CORNER_SIZE) {
-                selectedShape = i;
+                GameEditor.selectedShape = i;
 
                 System.out.println(curr.getImgName());
                 System.out.println(curr.getName());
@@ -483,10 +483,6 @@ public class CanvasView extends View {
 
         TextView clickObj = ((GameEditor)getContext()).findViewById(R.id.click_obj);
         clickObj.setVisibility(this.VISIBLE);
-
-
-        selectedShape = -1;
-
     }
 
     private void addBackground(Canvas canvas) {
@@ -501,17 +497,5 @@ public class CanvasView extends View {
             draw.setBounds(0, 0, getWidth(), getHeight());
             draw.draw(canvas);
         }
-    }
-
-    public void copyShape(View view) {
-
-    }
-
-    public void cutShape(View view) {
-
-    }
-
-    public void pasteShape(View view) {
-
     }
 }

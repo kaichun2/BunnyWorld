@@ -1411,47 +1411,51 @@ public class GameEditor extends AppCompatActivity {
     }
 
     public void copyShape(MenuItem menuItem) {
-        final Shape curr = currPage.getShapes().get(selectedShape);
+        if (selectedShape != -1) {
+            final Shape curr = currPage.getShapes().get(selectedShape);
 
-        // make a clone since we don't need the reference to
-        // original shape
-        Page.clipboardShape = (Shape) curr.clone();
+            // make a clone since we don't need the reference to
+            // original shape
+            Page.clipboardShape = (Shape) curr.clone();
 
-        // no undo support for copies
+            // no undo support for copies
+        }
     }
 
     public void cutShape(MenuItem menuItem) {
-        final Shape curr = currPage.getShapes().get(selectedShape);
+        if (selectedShape != -1) {
+            final Shape curr = currPage.getShapes().get(selectedShape);
 
-        // we are taking the current shape, including its reference,
-        // and placing it somewhere else.
-        Page.clipboardShape = curr;
+            // we are taking the current shape, including its reference,
+            // and placing it somewhere else.
+            Page.clipboardShape = curr;
 
-        // remove shape from storage, technically no longer existing
-        // though the script references will stay, user's responsibility
-        currPage.getShapes().remove(curr);
-        Shape.getAllShapes().remove(curr);
-        selectedShape = -1;
+            // remove shape from storage, technically no longer existing
+            // though the script references will stay, user's responsibility
+            currPage.getShapes().remove(curr);
+            Shape.getAllShapes().remove(curr);
+            selectedShape = -1;
 
-        // undo support
-        ShapeEvent event = new ShapeEvent(DELETE_SHAPE, curr);
-        undoShapeStack.push(event);
+            // undo support
+            ShapeEvent event = new ShapeEvent(DELETE_SHAPE, curr);
+            undoShapeStack.push(event);
 
-        // since we deleted a shape, let user know that they should check for errors
-        isError = "unchecked";
-        invalidateOptionsMenu();
+            // since we deleted a shape, let user know that they should check for errors
+            isError = "unchecked";
+            invalidateOptionsMenu();
 
-        CanvasView.setSelectedShape(selectedShape);
+            CanvasView.setSelectedShape(selectedShape);
 
-        // show updated canvas with missing shape
-        CanvasView canvasView = findViewById(R.id.canvas);
-        canvasView.invalidate();
+            // show updated canvas with missing shape
+            CanvasView canvasView = findViewById(R.id.canvas);
+            canvasView.invalidate();
 
-        // stop showing the object properties toolbar
-        LinearLayout objProperties = this.findViewById(R.id.obj_properties);
-        objProperties.setVisibility(View.GONE);
-        TextView clickObj = this.findViewById(R.id.click_obj);
-        clickObj.setVisibility(View.VISIBLE);
+            // stop showing the object properties toolbar
+            LinearLayout objProperties = this.findViewById(R.id.obj_properties);
+            objProperties.setVisibility(View.GONE);
+            TextView clickObj = this.findViewById(R.id.click_obj);
+            clickObj.setVisibility(View.VISIBLE);
+        }
     }
 
     public void pasteShape(MenuItem menuItem) {
