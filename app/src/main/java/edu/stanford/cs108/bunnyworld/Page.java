@@ -1,11 +1,8 @@
 package edu.stanford.cs108.bunnyworld;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.util.Log;
-import android.view.View;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static android.content.Context.MODE_PRIVATE;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,21 +19,33 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import static android.content.Context.MODE_PRIVATE;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 /**
  *
- * First: Before using the page class, you must load the data in from Database.
- *  Use Page.loadDatabase(this, "name_of_game")         (from activity) OR
- *      Page.loadDatabase(getContext(), "name_of_game") (from View)
+ * Each Page contains an array of all the shapes on that page. Page class
+ * contains the static reference to the possessions and handles all database
+ * functionalities (loading current stateinto database: loadIntoDatabaseFile,
+ * loading from database: loadDatabase).
  *
- * Then: Now you can use  Page.getPages() to get all of the
- * pages (in order) from the database for the  game loaded earlier. Each page will
- * contain a pageName ivar (use getPageName()) and an ArrayList of shapes ivar.
+ * Each Page can print itself in its JSON Format. Each page can handle
+ * onMouseEvents, like when an onclick, ondrop, onEnter event happens.
  *
- * The first argument is the "context." If you are calling from an activity,
- * then it should be fine to just pass in the keyword "this." If you're in
- * a view, then use getContext().
+ * ------------------------------------------------------------------------------------
+ *
+ * Database: JSON Files stored within internal android storage. Canonical BunnyWorld
+ *           example is loaded in MainActivity if it does not exist on client's Android.
+ *           Each file represents one game.
+ **
+ * Loading from database
+ * Page.loadDatabase(context, "gamename")
+ * --> Can now do Page.getPages(), Shape.getAllShapes(), Page.getPossessions(), ETC.
+ *
+ * Loading current state into database
+ * Page.loadIntoDatabaseFile(context, "gamename")
+ * --> the current state is converted to a JSON format (all the pages, shapes, etc.)
+ *      and stored in Android's persistent internal storage under gamename.json
  */
 
 public class Page {

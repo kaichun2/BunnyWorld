@@ -1,8 +1,5 @@
 package edu.stanford.cs108.bunnyworld;
 
-import android.arch.lifecycle.Lifecycle;
-import android.arch.lifecycle.LifecycleObserver;
-import android.arch.lifecycle.OnLifecycleEvent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,9 +15,10 @@ import android.widget.EditText;
 import android.support.v7.app.AlertDialog;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.GridLayout;
+import android.content.Intent;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,10 +27,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import android.content.Intent;
-import android.widget.TextView;
-import android.widget.Toast;
 
+/**
+ * Page Directory contains all of the pages for the specified game.
+ * The user can edit a particular page by clicking on it in the layout,
+ * or they can create a new page. Before the user saves the game to the
+ * database, they must check for errors and resolve all of those errors
+ * before saving. The user can also change the game name from this screen.
+ * The user can also undo any pages they have deleted since opening
+ * the game.
+ */
 public class PageDirectory extends AppCompatActivity {
 
     ArrayList<Page> pages;

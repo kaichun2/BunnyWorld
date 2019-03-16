@@ -1,33 +1,31 @@
 package edu.stanford.cs108.bunnyworld;
 
-import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import static edu.stanford.cs108.bunnyworld.GameEditor.undoShapeStack;
 
+
+/**
+ * Canvas View is the canvas representing the current page within GameEditor.
+ * This manages all of the associated logic for drawing the shapes and any
+ * changes made to them. Supports drag and drop between resources area and
+ * canvas, drag and drop within Canvas View itself, resizing shapes by dragging
+ * the corner, higlighting shapes appropriately when selected and all the necessary
+ * communication between canvas view and game editor for updating the shape dynamically
+ * with changes.
+ */
 public class CanvasView extends View {
 
     ArrayList<Shape> pageShapes;
@@ -112,8 +110,6 @@ public class CanvasView extends View {
         }
 
     }
-
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

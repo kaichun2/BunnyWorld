@@ -1,13 +1,5 @@
 package edu.stanford.cs108.bunnyworld;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -18,20 +10,36 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.json.simple.JSONObject;
 
 
 /**
- * Whenever you need to supply a context object:
- * If you are in an activity, just pass in "this" keyword.
- * If you are in a View, pass in getContext().
+ * Each shape stores all of its defining characteristics. The drawables
+ * and sound resources are stored within the Shape class as static variables
+ * that are only loaded in once. Shapes can be cloned for the sake of undoing
+ * changes within GameEditor/CanvasView. Shapes can parse their own scripts and
+ * execute the specified commands on their own. Shapes can print themselves in
+ * a JSON format. Shapes have an associated ShapeText object that allows their
+ * text to be displayed in a rich format (italics, underlined, bold, specific fonts,
+ * specific colors, etc.) which can also print itself in a JSON format.
+ * Shapes can consume other shapes (hehe), meaning that ShapeA absorbed all of
+ * the properties of ShapeB without having to drop the reference to ShapeA (very
+ * useful for undoing shape changes where we want to keep a reference to the affected
+ * shape). Shape class keeps track of imported resources and handles the logic for
+ * making them available within the game. And of course, Shapes can draw themselves.
+ *
+ * If a ShapeText object exists, the text is prioritized.
  */
 public class Shape implements Cloneable {
 

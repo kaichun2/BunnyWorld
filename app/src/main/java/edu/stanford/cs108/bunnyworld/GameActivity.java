@@ -5,10 +5,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import java.util.ArrayList;
 
+
+/**
+ * Outer shell for the game canvas GameView. Contains a toolbar
+ * above the canvas that is the same size as the toolbar in GameEditor
+ * and PageDirectory, so what you create in GameEditor is exactly
+ * what you get when playing the game. The toolbar displays the name
+ * of the current page in addition to a restart icon that can be clicked
+ * to restart the current game.
+ */
 public class GameActivity extends AppCompatActivity {
 
     public static ArrayList<Page> pages;
